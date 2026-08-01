@@ -2,9 +2,5 @@
   "name": "alugrade-lanka-business-management-system",
   "version": "1.0.0",
   "private": true,
-  "description": "ALUGRADE LANKA FAB & GLASS Business Management System (BMS)",
-  "scripts": {
-    "build": "node build.js",
-    "vercel-build": "node build.js"
-  }
+  "description": "ALUGRADE LANKA FAB & GLASS Business Management System (BMS)"
 }
