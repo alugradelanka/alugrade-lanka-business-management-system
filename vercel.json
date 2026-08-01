@@ -1,14 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    { "src": "index.html", "use": "@vercel/static" },
-    { "src": "app.html", "use": "@vercel/static" },
-    { "src": "css/**", "use": "@vercel/static" },
-    { "src": "js/**", "use": "@vercel/static" },
-    { "src": "assets/**", "use": "@vercel/static" }
-  ],
+  "cleanUrls": true,
   "routes": [
-    { "src": "^/$", "dest": "/index.html" },
-    { "src": "^/app$", "dest": "/app.html" }
+    { "handle": "filesystem" },
+    { "src": "/app", "dest": "/app.html" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
