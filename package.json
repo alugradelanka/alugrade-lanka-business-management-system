@@ -4,6 +4,7 @@
   "private": true,
   "description": "ALUGRADE LANKA FAB & GLASS Business Management System (BMS)",
   "scripts": {
-    "build": "node build.js"
+    "build": "node build.js",
+    "vercel-build": "node build.js"
   }
 }
