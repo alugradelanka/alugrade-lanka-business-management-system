@@ -1,13 +1,13 @@
 {
+  "version": 2,
   "cleanUrls": true,
-  "rewrites": [
-    {
-      "source": "/",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/app",
-      "destination": "/app.html"
-    }
+  "routes": [
+    { "src": "/app.html", "dest": "/app.html" },
+    { "src": "/app(.*)", "dest": "/app.html" },
+    { "src": "/index.html", "dest": "/index.html" },
+    { "src": "/css/(.*)", "dest": "/css/$1" },
+    { "src": "/js/(.*)", "dest": "/js/$1" },
+    { "src": "/assets/(.*)", "dest": "/assets/$1" },
+    { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
