@@ -5,6 +5,11 @@
 .env.test.local
 .env.production.local
 
+# Vercel & Build Artifacts
+.vercel
+dist/
+public/
+
 # Operating System Files
 .DS_Store
 Thumbs.db
