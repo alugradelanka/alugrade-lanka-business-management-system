@@ -5,7 +5,7 @@
 .env.test.local
 .env.production.local
 
-# Vercel Cache
+# Vercel & Cache Artifacts
 .vercel
 
 # Operating System Files
