@@ -1,0 +1,18 @@
+{
+  "name": "alugrade-bms",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ALUGRADE LANKA FAB & GLASS Business Management System (BMS)",
+  "main": "index.html",
+  "scripts": {
+    "start": "python server.py"
+  },
+  "keywords": [
+    "bms",
+    "erp",
+    "alugrade",
+    "management"
+  ],
+  "author": "ALUGRADE LANKA FAB & GLASS",
+  "license": "UNLICENSED"
+}
