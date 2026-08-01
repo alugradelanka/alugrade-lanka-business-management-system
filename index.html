@@ -588,11 +588,11 @@
           loginError.classList.remove('show');
 
           try {
-            const success = await window.Auth.login(email, password);
-            if (success) {
+            const res = await window.Auth.login(email, password);
+            if (res && res.success) {
               window.location.href = 'app.html';
             } else {
-              showError('Invalid email address or password.');
+              showError((res && res.message) ? res.message : 'Invalid email address or password.');
               submitBtn.classList.remove('loading');
               submitBtn.disabled = false;
             }

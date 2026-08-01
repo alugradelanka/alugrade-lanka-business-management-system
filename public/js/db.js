@@ -214,24 +214,35 @@ class Database {
     const rolesCount = await this.count('roles');
     if (rolesCount === 0) {
       await this.add('roles', { id: this.generateId('ROLE'), name: 'Super Admin', permissions: ['*'] });
+      await this.add('roles', { id: this.generateId('ROLE'), name: 'Managing Director', permissions: ['*'] });
       await this.add('roles', { id: this.generateId('ROLE'), name: 'Admin', permissions: ['manage_users', 'manage_sales', 'manage_inventory', 'view_reports'] });
       await this.add('roles', { id: this.generateId('ROLE'), name: 'Sales Agent', permissions: ['manage_customers', 'manage_sales', 'view_inventory'] });
     }
 
-    const usersCount = await this.count('users');
-    if (usersCount === 0) {
-      // admin / Admin@1234
-      const passwordHash = (window.Auth && typeof window.Auth.hashPassword === 'function' && window.Auth.hashPassword !== Object.prototype.hashPassword)
-        ? await window.Auth.hashPassword('Admin@1234')
-        : '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
+    const users = await this.getAll('users');
+    const adminHash = 'bc78e58d55cde1346e68f8e5fe588dedf62fa457aa646a500a53347faff6ee24'; // SHA-256 for Admin@1234
+
+    if (!users.some(u => u.email === 'admin@alugrade.lk' || u.username === 'admin')) {
       await this.add('users', {
         id: this.generateId('USER'),
         username: 'admin',
         email: 'admin@alugrade.lk',
-        password: passwordHash,
+        password: adminHash,
         role: 'Super Admin',
-        status: window.STATUS?.USER?.ACTIVE || 'active',
+        status: 'active',
         name: 'System Administrator'
+      });
+    }
+
+    if (!users.some(u => u.email === 'rajapaksha@alugrade.lk' || u.username === 'rajapaksha')) {
+      await this.add('users', {
+        id: this.generateId('USER'),
+        username: 'rajapaksha',
+        email: 'rajapaksha@alugrade.lk',
+        password: adminHash,
+        role: 'Managing Director',
+        status: 'active',
+        name: 'Mr. M. U. Rajapaksha'
       });
     }
 
