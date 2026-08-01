@@ -1,0 +1,333 @@
+/* 
+ * ALUGRADE LANKA FAB & GLASS - Business Management System
+ * Print Stylesheet
+ * 
+ * Provides styling for generating invoices, quotations, and reports.
+ */
+
+/* Hide everything by default that shouldn't be printed */
+@media print {
+    /* Hide UI Elements */
+    .sidebar,
+    .topbar,
+    .action-buttons,
+    .notifications,
+    .no-print,
+    .modal,
+    .toast-container,
+    nav,
+    button,
+    footer:not(.document-footer) {
+        display: none !important;
+    }
+
+    /* Print only visibility */
+    .print-only {
+        display: block !important;
+    }
+
+    /* Reset background and colors for clean print */
+    body {
+        background-color: #fff !important;
+        color: #000 !important;
+        margin: 0;
+        padding: 0;
+        font-family: Arial, sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
+        font-size: 12pt;
+    }
+
+    /* Page Setup */
+    @page {
+        size: A4 portrait;
+        margin: 20mm;
+    }
+
+    @page landscape {
+        size: A4 landscape;
+        margin: 20mm;
+    }
+
+    .print-landscape {
+        page: landscape;
+    }
+
+    /* Document Container */
+    .document-container {
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
+        padding: 0;
+        box-shadow: none;
+        border: none;
+    }
+
+    /* Header Section */
+    .document-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        border-bottom: 2px solid #C41230; /* Preserve brand color */
+        padding-bottom: 20px;
+    }
+
+    .document-header-logo img {
+        max-height: 80px;
+        width: auto;
+        background: #ffffff;
+        padding: 4px;
+        border-radius: 6px;
+    }
+
+    .document-header-info {
+        text-align: right;
+        font-size: 0.9em;
+    }
+
+    .document-header-info p {
+        margin: 2px 0;
+    }
+
+    /* Title & Reference */
+    .document-title {
+        text-align: center;
+        color: #C41230 !important;
+        font-size: 24pt;
+        text-transform: uppercase;
+        margin: 20px 0;
+        font-weight: bold;
+    }
+
+    .document-number {
+        font-size: 1.1em;
+        font-weight: bold;
+        text-align: right;
+        margin-bottom: 20px;
+    }
+
+    /* Customer Info Block */
+    .document-customer {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 30px;
+    }
+
+    .customer-details, .document-meta {
+        width: 48%;
+    }
+
+    .customer-details h3, .document-meta h3 {
+        font-size: 1.1em;
+        border-bottom: 1px solid #ccc;
+        padding-bottom: 5px;
+        margin-bottom: 10px;
+    }
+
+    .customer-details p, .document-meta p {
+        margin: 4px 0;
+        line-height: 1.4;
+    }
+
+    /* Table Styling for Print */
+    .document-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 30px;
+        page-break-inside: auto; /* Allow breaking table but not rows */
+    }
+
+    .document-table th, 
+    .document-table td {
+        border: 1px solid #000;
+        padding: 8px 12px;
+        text-align: left;
+    }
+
+    .document-table th {
+        background-color: #f2f2f2 !important; /* Light grey for contrast */
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        font-weight: bold;
+    }
+
+    .document-table tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+    }
+
+    .document-table thead {
+        display: table-header-group; /* Repeat headers on new pages */
+    }
+
+    .document-table tfoot {
+        display: table-footer-group;
+    }
+
+    .text-right {
+        text-align: right !important;
+    }
+
+    .text-center {
+        text-align: center !important;
+    }
+
+    /* Totals Section */
+    .document-totals {
+        width: 50%;
+        float: right;
+        margin-top: 20px;
+        page-break-inside: avoid;
+    }
+
+    .document-totals table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .document-totals td {
+        padding: 5px 10px;
+        border-bottom: 1px solid #eee;
+    }
+
+    .document-totals .grand-total {
+        font-weight: bold;
+        font-size: 1.2em;
+        border-top: 2px solid #000;
+        border-bottom: 2px solid #000;
+    }
+
+    /* Clearfix for floats */
+    .clearfix::after {
+        content: "";
+        clear: both;
+        display: table;
+    }
+
+    /* Signatures Section */
+    .document-signatures {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-top: 60px;
+        page-break-inside: avoid;
+    }
+
+    .signature-block {
+        width: 30%;
+        text-align: center;
+        border-top: 1px solid #000;
+        padding-top: 10px;
+    }
+
+    /* Official Signature Block Printing */
+    .official-signature-block {
+        text-align: center !important;
+        display: inline-block !important;
+        min-width: 200px !important;
+    }
+
+    .official-signature-block img {
+        height: 54px !important;
+        width: auto !important;
+        max-width: 180px !important;
+        object-fit: contain !important;
+        display: block !important;
+        margin: 0 auto !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    .official-signature-block .sig-line-divider {
+        border-top: 1.5px solid #0F172A !important;
+        width: 100% !important;
+        margin: 4px 0 6px 0 !important;
+    }
+
+    .official-signature-block .sig-name {
+        font-family: 'Poppins', sans-serif !important;
+        font-weight: 600 !important;
+        font-size: 11pt !important;
+        color: #0F172A !important;
+        line-height: 1.2 !important;
+    }
+
+    .official-signature-block .sig-title {
+        font-family: 'Montserrat', sans-serif !important;
+        font-weight: 500 !important;
+        font-size: 9pt !important;
+        color: #475569 !important;
+        line-height: 1.2 !important;
+        margin-top: 2px !important;
+    }
+
+    .official-signature-block .sig-company {
+        font-family: 'Poppins', sans-serif !important;
+        font-weight: 400 !important;
+        font-size: 8.5pt !important;
+        color: #64748B !important;
+        line-height: 1.2 !important;
+        margin-top: 1px !important;
+    }
+
+    /* QR Code */
+    .document-qrcode {
+        position: absolute;
+        bottom: 50px;
+        left: 0;
+    }
+
+    .document-qrcode img {
+        width: 80px;
+        height: 80px;
+    }
+
+    /* Watermark */
+    .document-watermark {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%) rotate(-45deg);
+        font-size: 120pt;
+        color: rgba(255, 0, 0, 0.15) !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        z-index: -1;
+        pointer-events: none;
+        white-space: nowrap;
+        font-weight: bold;
+    }
+
+    /* Footer & Page Numbers */
+    .document-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: 0.8em;
+        color: #555;
+        border-top: 1px solid #ccc;
+        padding-top: 10px;
+    }
+
+    /* Note: Page numbers in pure CSS can be tricky across browsers, 
+       but here is the standard approach using CSS counters in the footer 
+       or margin boxes (which are mostly supported in specialized print agents like PrinceXML,
+       and partially in modern browsers) */
+    
+    @page {
+        @bottom-right {
+            content: "Page " counter(page) " of " counter(pages);
+        }
+    }
+    
+    /* Fallback for browsers that don't support margin boxes well */
+    .page-number:after {
+        content: counter(page);
+    }
+}
+
+/* Helper classes for normal view that interact with print */
+.print-only {
+    display: none;
+}
