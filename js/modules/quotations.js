@@ -910,166 +910,493 @@ class QuotationModule {
 
         return `
             <!DOCTYPE html>
-            <html>
+            <html lang="en">
             <head>
+                <meta charset="UTF-8">
                 <title>Quotation ${q.id} - ALUGRADE LANKA FAB & GLASS</title>
-                <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700&family=Poppins:wght@400;500;600;700&display=swap">
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
                 <style>
-                    body { font-family: 'Inter', sans-serif; margin: 0; padding: 24px; color: #0F172A; background: #ffffff; font-size: 11px; }
-                    .header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #2563EB; padding-bottom: 16px; margin-bottom: 20px; }
-                    .logo-wrap { background: #ffffff; padding: 6px 12px; border-radius: 8px; border: 1px solid #E2E8F0; display: inline-block; }
-                    .logo-wrap img { height: 75px; width: auto; object-fit: contain; }
-                    .header-info { text-align: right; }
-                    .doc-title { font-size: 20px; font-weight: 800; color: #2563EB; letter-spacing: -0.01em; margin-bottom: 4px; }
-                    .info-grid { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
-                    .info-box { flex: 1; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; background: #F8FAFC; }
-                    .info-box h4 { margin: 0 0 6px 0; color: #2563EB; font-size: 12px; font-weight: 700; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; }
-                    table.items-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-                    table.items-table th { background: #F1F5F9; color: #334155; border: 1px solid #CBD5E1; padding: 8px; font-size: 10px; text-transform: uppercase; text-align: left; }
-                    table.items-table td { border: 1px solid #CBD5E1; padding: 8px; }
-                    .text-right { text-align: right; }
-                    .totals-container { display: flex; justify-content: flex-end; margin-bottom: 20px; }
-                    .totals-table { width: 320px; border-collapse: collapse; }
-                    .totals-table td { padding: 5px 8px; border-bottom: 1px solid #E2E8F0; }
-                    .totals-table .grand-row { font-weight: 800; font-size: 13px; color: #2563EB; border-top: 2px solid #0F172A; border-bottom: 2px solid #0F172A; }
-                    .scope-box { border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px; background: #F8FAFC; margin-bottom: 24px; }
-                    .scope-box h4 { margin: 0 0 6px 0; color: #0F172A; font-size: 11px; }
-                    
-                    /* Official Signature Block Styling */
-                    .signatures-wrapper { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 40px; page-break-inside: avoid; }
-                    .sig-line { text-align: center; width: 180px; }
-                    .official-signature-block { text-align: center; display: inline-block; min-width: 220px; }
-                    .official-signature-block img { height: 55px; width: auto; object-fit: contain; display: block; margin: 0 auto 4px auto; }
-                    .official-signature-block .sig-line-divider { border-top: 1.5px solid #0F172A; width: 100%; margin: 4px 0 6px 0; }
-                    .official-signature-block .sig-name { font-family: 'Poppins', sans-serif; font-weight: 600; font-size: 12px; color: #0F172A; line-height: 1.2; }
-                    .official-signature-block .sig-title { font-family: 'Montserrat', sans-serif; font-weight: 500; font-size: 9.5px; color: #475569; line-height: 1.2; margin-top: 2px; }
-                    .official-signature-block .sig-company { font-family: 'Poppins', sans-serif; font-weight: 400; font-size: 8.5px; color: #64748B; line-height: 1.2; margin-top: 1px; }
+                    @page {
+                        size: A4 portrait;
+                        margin: 10mm 12mm 10mm 12mm;
+                    }
+                    * { box-sizing: border-box; }
+                    body {
+                        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                        margin: 0;
+                        padding: 20px;
+                        color: #0F172A;
+                        background: #ffffff;
+                        font-size: 11px;
+                        line-height: 1.4;
+                        position: relative;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
 
-                    .footer { text-align: center; font-size: 9px; color: #94A3B8; margin-top: 30px; border-top: 1px solid #E2E8F0; padding-top: 8px; }
+                    /* Watermark Logo */
+                    .watermark {
+                        position: fixed;
+                        top: 45%;
+                        left: 50%;
+                        transform: translate(-50%, -50%) rotate(-20deg);
+                        width: 360px;
+                        opacity: 0.04;
+                        pointer-events: none;
+                        z-index: 0;
+                    }
+
+                    .content-wrapper {
+                        position: relative;
+                        z-index: 1;
+                    }
+
+                    /* Letterhead Header */
+                    .header-container {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        border-bottom: 2.5px solid #2563EB;
+                        padding-bottom: 14px;
+                        margin-bottom: 16px;
+                    }
+                    .logo-brand-wrap {
+                        display: flex;
+                        align-items: center;
+                        gap: 14px;
+                    }
+                    .logo-box {
+                        background: #ffffff;
+                        padding: 4px;
+                        border-radius: 8px;
+                        display: inline-block;
+                    }
+                    .logo-box img {
+                        height: 68px;
+                        width: auto;
+                        object-fit: contain;
+                    }
+                    .company-title {
+                        font-family: 'Montserrat', sans-serif;
+                        font-size: 17px;
+                        font-weight: 800;
+                        color: #0F172A;
+                        margin: 0;
+                        letter-spacing: -0.02em;
+                    }
+                    .company-subtitle {
+                        color: #2563EB;
+                        font-size: 10px;
+                        font-weight: 700;
+                        margin: 2px 0 3px 0;
+                        text-transform: uppercase;
+                        letter-spacing: 0.03em;
+                    }
+                    .company-contacts {
+                        color: #475569;
+                        font-size: 9.5px;
+                        margin: 0;
+                        font-weight: 500;
+                    }
+
+                    .header-info-box {
+                        text-align: right;
+                    }
+                    .doc-badge {
+                        background: #2563EB;
+                        color: #ffffff;
+                        font-family: 'Montserrat', sans-serif;
+                        font-size: 16px;
+                        font-weight: 800;
+                        padding: 4px 14px;
+                        border-radius: 6px;
+                        display: inline-block;
+                        letter-spacing: 0.05em;
+                        margin-bottom: 6px;
+                    }
+                    .meta-line {
+                        margin: 2px 0;
+                        font-size: 10.5px;
+                        color: #334155;
+                    }
+                    .meta-line strong {
+                        color: #0F172A;
+                    }
+
+                    /* Customer & Project Info Grid */
+                    .info-grid {
+                        display: flex;
+                        gap: 14px;
+                        margin-bottom: 16px;
+                    }
+                    .info-card {
+                        flex: 1;
+                        border: 1px solid #E2E8F0;
+                        border-radius: 8px;
+                        padding: 10px 14px;
+                        background: #F8FAFC;
+                    }
+                    .info-card h4 {
+                        margin: 0 0 6px 0;
+                        color: #2563EB;
+                        font-size: 11px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.04em;
+                        border-bottom: 1px solid #E2E8F0;
+                        padding-bottom: 4px;
+                    }
+                    .info-card-text {
+                        font-size: 10.5px;
+                        color: #334155;
+                        line-height: 1.45;
+                    }
+                    .info-card-text strong {
+                        color: #0F172A;
+                    }
+
+                    /* Specification Table */
+                    table.spec-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        margin-bottom: 16px;
+                    }
+                    table.spec-table th {
+                        background: #0F172A;
+                        color: #ffffff;
+                        font-size: 9.5px;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.04em;
+                        padding: 7px 8px;
+                        border: 1px solid #0F172A;
+                        text-align: left;
+                    }
+                    table.spec-table td {
+                        border: 1px solid #CBD5E1;
+                        padding: 7px 8px;
+                        font-size: 10px;
+                        color: #1E293B;
+                        vertical-align: top;
+                    }
+                    table.spec-table tr:nth-child(even) td {
+                        background: #F8FAFC;
+                    }
+                    .text-right { text-align: right; }
+                    .text-center { text-align: center; }
+
+                    /* Financial Summary & Commercial Scope */
+                    .financial-wrapper {
+                        display: flex;
+                        gap: 14px;
+                        margin-bottom: 16px;
+                        page-break-inside: avoid;
+                    }
+                    .terms-box {
+                        flex: 1;
+                        border: 1px solid #E2E8F0;
+                        border-radius: 8px;
+                        padding: 10px 14px;
+                        background: #F8FAFC;
+                    }
+                    .terms-box h4 {
+                        margin: 0 0 6px 0;
+                        color: #0F172A;
+                        font-size: 11px;
+                        font-weight: 700;
+                        border-bottom: 1px solid #E2E8F0;
+                        padding-bottom: 4px;
+                    }
+                    .terms-list {
+                        font-size: 9.5px;
+                        color: #475569;
+                        line-height: 1.4;
+                        margin: 0;
+                        padding-left: 14px;
+                    }
+                    .terms-meta {
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 6px;
+                        margin-bottom: 8px;
+                        font-size: 9.5px;
+                    }
+
+                    .totals-box {
+                        width: 310px;
+                        border: 1px solid #CBD5E1;
+                        border-radius: 8px;
+                        overflow: hidden;
+                        background: #ffffff;
+                    }
+                    .totals-table {
+                        width: 100%;
+                        border-collapse: collapse;
+                        font-size: 10.5px;
+                    }
+                    .totals-table td {
+                        padding: 5px 10px;
+                        border-bottom: 1px solid #F1F5F9;
+                    }
+                    .totals-table tr.grand-total-row td {
+                        background: #2563EB;
+                        color: #ffffff;
+                        font-weight: 800;
+                        font-size: 12.5px;
+                        padding: 7px 10px;
+                    }
+                    .totals-table tr.balance-row td {
+                        background: #FEF2F2;
+                        color: #991B1B;
+                        font-weight: 700;
+                    }
+
+                    /* Dual Signature Area */
+                    .signature-area {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: flex-end;
+                        margin-top: 24px;
+                        padding-top: 10px;
+                        page-break-inside: avoid;
+                    }
+                    .sig-block {
+                        text-align: center;
+                        width: 210px;
+                    }
+                    .sig-image-container {
+                        height: 55px;
+                        display: flex;
+                        align-items: flex-end;
+                        justify-content: center;
+                        margin-bottom: 4px;
+                    }
+                    .sig-image-container img {
+                        max-height: 52px;
+                        width: auto;
+                        object-fit: contain;
+                    }
+                    .sig-line-bar {
+                        border-top: 1.5px solid #0F172A;
+                        width: 100%;
+                        margin: 4px 0 4px 0;
+                    }
+                    .sig-person-name {
+                        font-family: 'Montserrat', sans-serif;
+                        font-weight: 700;
+                        font-size: 11px;
+                        color: #0F172A;
+                    }
+                    .sig-person-title {
+                        font-size: 9.5px;
+                        color: #475569;
+                        font-weight: 600;
+                    }
+                    .sig-company-name {
+                        font-size: 8.5px;
+                        color: #64748B;
+                    }
+
+                    .stamp-box {
+                        border: 1.5px dashed #94A3B8;
+                        border-radius: 6px;
+                        padding: 8px;
+                        text-align: center;
+                        color: #94A3B8;
+                        font-size: 8.5px;
+                        font-weight: 600;
+                        width: 140px;
+                        height: 50px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+
+                    .document-footer {
+                        text-align: center;
+                        font-size: 8.5px;
+                        color: #94A3B8;
+                        margin-top: 20px;
+                        border-top: 1px solid #E2E8F0;
+                        padding-top: 6px;
+                        font-weight: 500;
+                    }
+
+                    @media print {
+                        body { padding: 0; }
+                        .no-print { display: none !important; }
+                    }
                 </style>
             </head>
             <body>
-                <div class="header-container">
-                    <div style="display: flex; align-items: center; gap: 14px;">
-                        <div class="logo-wrap">
-                            <img src="assets/logo/logo.png" alt="ALUGRADE LANKA FAB & GLASS" />
-                        </div>
-                        <div>
-                            <h2 style="margin: 0; font-size: 16px; font-weight: 800; color: #0F172A;">ALUGRADE LANKA FAB & GLASS</h2>
-                            <p style="margin: 2px 0 0 0; color: #2563EB; font-weight: 600; font-size: 10px;">Quality Aluminium & Glass Solutions · Commercial Fabrication</p>
-                            <p style="margin: 2px 0 0 0; color: #64748B; font-size: 9px;">📍 53/1/A Diyagama, Homagama  |  📞 0702795702  |  💬 0755515862</p>
-                        </div>
-                    </div>
-                    <div class="header-info">
-                        <div class="doc-title">QUOTATION</div>
-                        <p style="margin: 0;"><strong>QTN#:</strong> ${q.id}</p>
-                        <p style="margin: 2px 0;"><strong>Date:</strong> ${q.date}</p>
-                        <p style="margin: 0;"><strong>Valid Until:</strong> ${q.validUntil}</p>
-                    </div>
-                </div>
 
-                <div class="info-grid">
-                    <div class="info-box">
-                        <h4>Quotation To (Customer)</h4>
-                        <strong>${q.customerName}</strong><br>
-                        ${q.billingAddress ? q.billingAddress.replace(/\n/g, '<br>') : 'N/A'}<br>
-                        Tel: ${q.customerPhone || 'N/A'} | Email: ${q.customerEmail || 'N/A'}
-                    </div>
-                    <div class="info-box">
-                        <h4>Project & Site Location</h4>
-                        <strong>Project:</strong> ${q.projectName || 'General Project'}<br>
-                        <strong>Site Address:</strong> ${q.siteAddress ? q.siteAddress.replace(/\n/g, '<br>') : 'Site Location'}<br>
-                        <strong>Sales Rep:</strong> ${q.salesRep || q.salesRepName || 'Sales Dept'}
-                    </div>
-                </div>
+                <!-- Watermark Background Logo -->
+                <img src="assets/logo/logo.png" class="watermark" alt="Watermark" />
 
-                <table class="items-table">
-                    <thead>
-                        <tr>
-                            <th style="width: 30px;">#</th>
-                            <th>Description & Specification</th>
-                            <th>Aluminium & Glass Specs</th>
-                            <th>Dimensions (W×H mm)</th>
-                            <th>Qty</th>
-                            <th>Sq.Ft</th>
-                            <th class="text-right">Unit Price</th>
-                            <th class="text-right">Labour</th>
-                            <th class="text-right">Total (LKR)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${q.items.map((item, idx) => `
+                <div class="content-wrapper">
+
+                    <!-- Header Letterhead -->
+                    <div class="header-container">
+                        <div class="logo-brand-wrap">
+                            <div class="logo-box">
+                                <img src="assets/logo/logo.png" alt="ALUGRADE LANKA FAB & GLASS" />
+                            </div>
+                            <div>
+                                <h1 class="company-title">ALUGRADE LANKA FAB & GLASS</h1>
+                                <div class="company-subtitle">Architectural Aluminium & Structural Glass Solutions</div>
+                                <p class="company-contacts">
+                                    📍 53/1/A Diyagama, Homagama &nbsp;|&nbsp; 📞 070 279 5702 &nbsp;|&nbsp; 💬 075 551 5862<br>
+                                    📧 info@alugrade.lk &nbsp;|&nbsp; 🌐 www.alugrade.lk
+                                </p>
+                            </div>
+                        </div>
+                        <div class="header-info-box">
+                            <div class="doc-badge">QUOTATION</div>
+                            <div class="meta-line"><strong>QTN No:</strong> ${q.id}</div>
+                            <div class="meta-line"><strong>Date:</strong> ${q.date}</div>
+                            <div class="meta-line"><strong>Valid Until:</strong> ${q.validUntil}</div>
+                            <div class="meta-line"><strong>Sales Rep:</strong> ${q.salesRep || q.salesRepName || 'Samantha Perera'}</div>
+                        </div>
+                    </div>
+
+                    <!-- Customer & Project Info Grid -->
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h4>Client Information</h4>
+                            <div class="info-card-text">
+                                <strong>${q.customerName}</strong><br>
+                                ${q.billingAddress ? q.billingAddress.replace(/\n/g, '<br>') : 'Address on Record'}<br>
+                                <strong>Phone:</strong> ${q.customerPhone || 'N/A'}<br>
+                                <strong>Email:</strong> ${q.customerEmail || 'N/A'}
+                            </div>
+                        </div>
+                        <div class="info-card">
+                            <h4>Project & Site Details</h4>
+                            <div class="info-card-text">
+                                <strong>Project:</strong> ${q.projectName || 'General Commercial Fabrication'}<br>
+                                <strong>Site Location:</strong> ${q.siteAddress ? q.siteAddress.replace(/\n/g, '<br>') : 'Site Location'}<br>
+                                <strong>Installation:</strong> ${q.installation || 'Included'} &nbsp;|&nbsp; <strong>Delivery:</strong> ${q.transportation || 'Included'}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Itemized Specifications Table -->
+                    <table class="spec-table">
+                        <thead>
                             <tr>
-                                <td>${idx + 1}</td>
-                                <td><strong>${item.description}</strong></td>
-                                <td>
-                                    <div>Section: ${item.alumSection}</div>
-                                    <div style="color:#64748B;">Glass: ${item.glassType} | Color: ${item.colour}</div>
-                                </td>
-                                <td>${item.width} × ${item.height} mm</td>
-                                <td>${item.qty}</td>
-                                <td>${item.sqft}</td>
-                                <td class="text-right">${item.unitPrice ? item.unitPrice.toFixed(2) : (item.price ? item.price.toFixed(2) : '0.00')}</td>
-                                <td class="text-right">${(item.labour || 0).toFixed(2)}</td>
-                                <td class="text-right"><strong>${item.amount.toFixed(2)}</strong></td>
+                                <th style="width: 25px;" class="text-center">#</th>
+                                <th>Item Description & Specification</th>
+                                <th style="width: 85px;" class="text-center">Dimensions</th>
+                                <th style="width: 55px;" class="text-center">Sq.Ft</th>
+                                <th style="width: 40px;" class="text-center">Qty</th>
+                                <th style="width: 90px;" class="text-right">Unit Rate</th>
+                                <th style="width: 100px;" class="text-right">Amount (LKR)</th>
                             </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-
-                <div class="totals-container">
-                    <table class="totals-table">
-                        <tr><td>Subtotal:</td><td class="text-right">LKR ${q.subtotal.toFixed(2)}</td></tr>
-                        <tr><td>Discount:</td><td class="text-right">- LKR ${(q.overallDiscount || 0).toFixed(2)}</td></tr>
-                        <tr><td>VAT (${q.vatPct || 18}%):</td><td class="text-right">+ LKR ${(q.vatAmount || 0).toFixed(2)}</td></tr>
-                        <tr class="grand-row"><td>Grand Total:</td><td class="text-right">LKR ${q.grandTotal.toFixed(2)}</td></tr>
-                        <tr><td>Advance Required:</td><td class="text-right">LKR ${(q.advance || 0).toFixed(2)}</td></tr>
-                        <tr><td>Balance Payable:</td><td class="text-right">LKR ${q.balance.toFixed(2)}</td></tr>
+                        </thead>
+                        <tbody>
+                            ${q.items.map((item, idx) => `
+                                <tr>
+                                    <td class="text-center" style="font-weight: 700;">${idx + 1}</td>
+                                    <td>
+                                        <strong style="color: #0F172A; font-size: 10.5px;">${item.description}</strong>
+                                        <div style="color: #475569; font-size: 9px; margin-top: 2px;">
+                                            Section: <strong>${item.alumSection || '-'}</strong> &nbsp;|&nbsp;
+                                            Glass: <strong>${item.glassType || '-'}</strong> &nbsp;|&nbsp;
+                                            Finish: <strong>${item.colour || '-'}</strong>
+                                        </div>
+                                    </td>
+                                    <td class="text-center">${item.width} × ${item.height} mm</td>
+                                    <td class="text-center font-medium">${parseFloat(item.sqft || 0).toFixed(2)}</td>
+                                    <td class="text-center font-medium">${item.qty}</td>
+                                    <td class="text-right">${parseFloat(item.unitPrice || item.price || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                    <td class="text-right" style="font-weight: 700;">${parseFloat(item.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
                     </table>
-                </div>
 
-                <div class="scope-box">
-                    <h4>Terms & Commercial Scope</h4>
-                    <div style="display: flex; gap: 20px; margin-bottom: 8px;">
-                        <span><strong>Delivery Period:</strong> ${q.deliveryPeriod}</span>
-                        <span><strong>Payment Terms:</strong> ${q.paymentTerms}</span>
-                        <span><strong>Installation:</strong> ${q.installation}</span>
-                        <span><strong>Transportation:</strong> ${q.transportation}</span>
-                    </div>
-                    <div><strong>Warranty:</strong> ${q.warranty}</div>
-                    ${q.notes ? `<div style="margin-top: 4px;"><strong>Special Notes:</strong> ${q.notes}</div>` : ''}
-                    <div style="margin-top: 6px; white-space: pre-line; color: #475569;">${q.terms}</div>
-                </div>
-
-                <!-- Official Signature Block Footer -->
-                <div class="signatures-wrapper">
-                    <div class="sig-line">
-                        <div style="font-weight: 600; color: #0F172A; margin-bottom: 35px;">${q.preparedBy || 'Admin User'}</div>
-                        <div style="border-top: 1.5px solid #0F172A;"></div>
-                        <div style="font-size: 10px; font-weight: 600; margin-top: 3px;">Prepared By</div>
-                    </div>
-
-                    <!-- Official Managing Director Signature Block -->
-                    <div class="official-signature-block">
-                        <div class="sig-img-wrap">
-                            <img src="assets/signature/signature.png" alt="Authorized Signature" />
+                    <!-- Financial Summary & Commercial Scope -->
+                    <div class="financial-wrapper">
+                        <div class="terms-box">
+                            <h4>Commercial Scope & Terms</h4>
+                            <div class="terms-meta">
+                                <div><strong>Delivery Period:</strong> ${q.deliveryPeriod || '2-3 Weeks'}</div>
+                                <div><strong>Payment Terms:</strong> ${q.paymentTerms || '50% Advance'}</div>
+                                <div><strong>Warranty:</strong> ${q.warranty || '10 Yrs Profiles / 2 Yrs Hardware'}</div>
+                                <div><strong>Prepared By:</strong> ${q.preparedBy || 'Admin User'}</div>
+                            </div>
+                            <ol class="terms-list">
+                                <li>Prices are valid for 30 days from quotation issue date.</li>
+                                <li>Any variation in site structural opening dimensions will be adjusted on final billing.</li>
+                                <li>Site readiness and opening clearing are customer responsibility prior to installation.</li>
+                            </ol>
+                            ${q.notes ? `<div style="margin-top: 6px; font-size: 9px; color: #1E293B;"><strong>Remarks:</strong> ${q.notes}</div>` : ''}
                         </div>
-                        <div class="sig-line-divider"></div>
-                        <div class="sig-name">MR. M. U. RAJAPAKSHA</div>
-                        <div class="sig-title">Managing Director</div>
-                        <div class="sig-company">ALUGRADE LANKA FAB & GLASS</div>
+
+                        <div class="totals-box">
+                            <table class="totals-table">
+                                <tr>
+                                    <td style="color: #475569;">Subtotal:</td>
+                                    <td class="text-right font-medium">LKR ${parseFloat(q.subtotal || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                </tr>
+                                <tr>
+                                    <td style="color: #475569;">Overall Discount:</td>
+                                    <td class="text-right text-danger">- LKR ${parseFloat(q.overallDiscount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                </tr>
+                                <tr>
+                                    <td style="color: #475569;">VAT (${q.vatPct !== undefined ? q.vatPct : 18}%):</td>
+                                    <td class="text-right">+ LKR ${parseFloat(q.vatAmount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                </tr>
+                                <tr class="grand-total-row">
+                                    <td>Grand Total:</td>
+                                    <td class="text-right">LKR ${parseFloat(q.grandTotal || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                </tr>
+                                <tr>
+                                    <td style="color: #475569;">Advance Deposit:</td>
+                                    <td class="text-right">LKR ${parseFloat(q.advance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                </tr>
+                                <tr class="balance-row">
+                                    <td>Balance Payable:</td>
+                                    <td class="text-right">LKR ${parseFloat(q.balance || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                                </tr>
+                            </table>
+                        </div>
                     </div>
 
-                    <div class="sig-line">
-                        <div style="height: 50px;"></div>
-                        <div style="border-top: 1.5px solid #0F172A;"></div>
-                        <div style="font-size: 10px; font-weight: 600; margin-top: 3px;">Customer Acceptance</div>
+                    <!-- Dual Signature Area -->
+                    <div class="signature-area">
+                        <div class="sig-block">
+                            <div class="sig-image-container">
+                                <img src="assets/signature/signature.png" alt="Authorized Signature" />
+                            </div>
+                            <div class="sig-line-bar"></div>
+                            <div class="sig-person-name">MR. M. U. RAJAPAKSHA</div>
+                            <div class="sig-person-title">Managing Director</div>
+                            <div class="sig-company-name">ALUGRADE LANKA FAB & GLASS</div>
+                        </div>
+
+                        <div class="stamp-box">
+                            OFFICIAL COMPANY<br>STAMP & SEAL
+                        </div>
+
+                        <div class="sig-block">
+                            <div class="sig-image-container"></div>
+                            <div class="sig-line-bar"></div>
+                            <div class="sig-person-name">CUSTOMER ACCEPTANCE</div>
+                            <div class="sig-person-title">Authorized Name & Signature</div>
+                            <div class="sig-company-name">Date: ____ / ____ / 2026</div>
+                        </div>
                     </div>
+
+                    <!-- Document Footer -->
+                    <div class="document-footer">
+                        ALUGRADE LANKA FAB & GLASS &nbsp;•&nbsp; Commercial Enterprise System &nbsp;•&nbsp; Page 1 of 1
+                    </div>
+
                 </div>
 
-                <div class="footer">
-                    ALUGRADE LANKA FAB & GLASS · Commercial Enterprise Quotation System · Page 1 of 1
-                </div>
             </body>
             </html>
         `;
