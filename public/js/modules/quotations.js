@@ -257,17 +257,24 @@ class QuotationModule {
                     </div>
 
                     <div class="row g-3">
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label font-medium">Auto Quotation Number</label>
                             <input type="text" class="form-control bg-light font-bold" id="q_id" value="${newId}" readonly>
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-2">
                             <label class="form-label font-medium">Quotation Date <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="q_date" value="${q ? q.date : today}" required>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label font-medium">Valid Until Date <span class="text-danger">*</span></label>
+                        <div class="col-md-2">
+                            <label class="form-label font-medium">Valid Until <span class="text-danger">*</span></label>
                             <input type="date" class="form-control" id="q_validUntil" value="${q ? q.validUntil : defaultValidStr}" required>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label font-medium text-primary"><i class="fas fa-layer-group me-1"></i> Profile Brand <span class="text-danger">*</span></label>
+                            <select class="form-select font-bold border-primary text-primary" id="q_profileBrand" onchange="window.quotationModule.onGlobalBrandChange()">
+                                <option value="Alumex" ${!q || (q && q.profileBrand === 'Alumex') ? 'selected' : ''}>Alumex Aluminium</option>
+                                <option value="SwissTek" ${q && q.profileBrand === 'SwissTek' ? 'selected' : ''}>SwissTek Aluminium</option>
+                            </select>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label font-medium">Sales Representative</label>
@@ -319,7 +326,7 @@ class QuotationModule {
                     <div class="card-header bg-white p-0 pb-3 mb-3 border-bottom d-flex justify-content-between align-items-center">
                         <div>
                             <h5 class="font-bold text-main mb-0"><i class="fas fa-th-list text-primary me-2"></i> Fabrication Specification Items</h5>
-                            <p class="text-muted small mb-0">Each row auto calculates Square Feet (Width × Height) and total item charges</p>
+                            <p class="text-muted small mb-0">Each row auto calculates Square Feet (Width × Height) and total item charges based on selected Profile Brand</p>
                         </div>
                         <button type="button" class="btn btn-sm btn-primary" onclick="window.quotationModule.addItemRow()">
                             <i class="fas fa-plus me-1"></i> Add Specification Row
@@ -330,12 +337,11 @@ class QuotationModule {
                         <table class="table table-bordered align-middle mb-0" id="q_itemsTable" style="font-size: 12px;">
                             <thead class="table-light small uppercase" style="font-size: 11px;">
                                 <tr>
-                                    <th style="width: 140px;">Price Master Item</th>
-                                    <th style="width: 95px;">Profile Brand</th>
-                                    <th style="width: 140px;">Item Description</th>
-                                    <th style="width: 130px;">Aluminium Section</th>
-                                    <th style="width: 125px;">Glass Type</th>
-                                    <th style="width: 115px;">Colour / Finish</th>
+                                    <th style="width: 150px;">Price Master Item</th>
+                                    <th style="width: 150px;">Item Description</th>
+                                    <th style="width: 140px;">Aluminium Section</th>
+                                    <th style="width: 130px;">Glass Type</th>
+                                    <th style="width: 120px;">Colour / Finish</th>
                                     <th style="width: 75px;">Width (mm)</th>
                                     <th style="width: 75px;">Height (mm)</th>
                                     <th style="width: 50px;">Qty</th>
@@ -497,12 +503,6 @@ class QuotationModule {
                 </div>
             </td>
             <td>
-                <select class="form-select form-select-sm item-brand-select" onchange="window.quotationModule.onProductSelect('${rowId}')">
-                    <option value="Alumex" ${currentBrand === 'Alumex' ? 'selected' : ''}>Alumex</option>
-                    <option value="SwissTek" ${currentBrand === 'SwissTek' ? 'selected' : ''}>SwissTek</option>
-                </select>
-            </td>
-            <td>
                 <input type="text" class="form-control form-control-sm item-desc" placeholder="e.g. Sliding Door 2-Track" value="${item.description || ''}" required>
             </td>
             <td>
@@ -578,15 +578,24 @@ class QuotationModule {
         }
     }
 
+    onGlobalBrandChange() {
+        const headerBrand = document.getElementById('q_profileBrand')?.value || 'Alumex';
+        const tbody = document.getElementById('q_itemsBody');
+        if (!tbody) return;
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach(tr => {
+            if (tr.id) this.onProductSelect(tr.id);
+        });
+    }
+
     onProductSelect(rowId) {
         const row = document.getElementById(rowId);
         if (!row) return;
 
         const priceSelect = row.querySelector('.item-price-master-select');
-        const brandSelect = row.querySelector('.item-brand-select');
         const warningBadge = row.querySelector('.item-price-warning');
         const priceId = priceSelect ? priceSelect.value : '';
-        const selectedBrand = brandSelect ? brandSelect.value : 'Alumex';
+        const selectedBrand = document.getElementById('q_profileBrand')?.value || 'Alumex';
 
         if (!priceId) {
             if (warningBadge) {
@@ -710,12 +719,13 @@ class QuotationModule {
 
     save() {
         const id = document.getElementById('q_id').value;
+        const globalBrand = document.getElementById('q_profileBrand')?.value || 'Alumex';
 
         const items = [];
         document.querySelectorAll('#q_itemsBody tr').forEach(row => {
             items.push({
                 priceMasterId: row.querySelector('.item-price-master-select')?.value || '',
-                brand: row.querySelector('.item-brand-select')?.value || 'Alumex',
+                brand: globalBrand,
                 description: row.querySelector('.item-desc').value,
                 alumSection: row.querySelector('.item-alum-section').value,
                 glassType: row.querySelector('.item-glass-type').value,
@@ -736,6 +746,7 @@ class QuotationModule {
             id: id,
             date: document.getElementById('q_date').value,
             validUntil: document.getElementById('q_validUntil').value,
+            profileBrand: globalBrand,
             salesRep: document.getElementById('q_salesRep').value,
             salesRepName: document.getElementById('q_salesRep').value,
             customerName: document.getElementById('q_customerName').value,
@@ -820,6 +831,7 @@ class QuotationModule {
                             <div class="col-sm-6">
                                 <p class="mb-1"><strong>Quotation Date:</strong> ${q.date}</p>
                                 <p class="mb-1"><strong>Valid Until Date:</strong> ${q.validUntil}</p>
+                                <p class="mb-1"><strong>Profile Brand:</strong> <span class="badge bg-primary px-2 py-1">${q.profileBrand || q.items[0]?.brand || 'Alumex'}</span></p>
                                 <p class="mb-1"><strong>Site Address:</strong> ${q.siteAddress || 'N/A'}</p>
                             </div>
                         </div>
@@ -1323,6 +1335,7 @@ class QuotationModule {
                             <div class="meta-line"><strong>QTN No:</strong> ${q.id}</div>
                             <div class="meta-line"><strong>Date:</strong> ${q.date}</div>
                             <div class="meta-line"><strong>Valid Until:</strong> ${q.validUntil}</div>
+                            <div class="meta-line"><strong>Profile Brand:</strong> ${q.profileBrand || q.items[0]?.brand || 'Alumex'}</div>
                             <div class="meta-line"><strong>Sales Rep:</strong> ${q.salesRep || q.salesRepName || 'Samantha Perera'}</div>
                         </div>
                     </div>
