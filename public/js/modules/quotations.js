@@ -327,24 +327,24 @@ class QuotationModule {
                     </div>
 
                     <div class="table-responsive">
-                        <table class="table table-bordered align-middle mb-0" id="q_itemsTable">
-                            <thead class="table-light small uppercase">
+                        <table class="table table-bordered align-middle mb-0" id="q_itemsTable" style="font-size: 12px;">
+                            <thead class="table-light small uppercase" style="font-size: 11px;">
                                 <tr>
-                                    <th style="min-width: 170px;">Price Master Item</th>
-                                    <th style="min-width: 115px;">Profile Brand</th>
-                                    <th style="min-width: 160px;">Item Description</th>
-                                    <th style="min-width: 150px;">Aluminium Section</th>
-                                    <th style="min-width: 140px;">Glass Type</th>
-                                    <th style="min-width: 130px;">Colour / Finish</th>
-                                    <th style="width: 90px;">Width (mm)</th>
-                                    <th style="width: 90px;">Height (mm)</th>
-                                    <th style="width: 65px;">Qty</th>
-                                    <th style="width: 85px;">Sq.Ft (Auto)</th>
-                                    <th style="width: 105px;">Unit Rate (LKR)</th>
-                                    <th style="width: 95px;">Labour (LKR)</th>
-                                    <th style="width: 80px;">Disc (LKR)</th>
-                                    <th style="width: 115px;">Total (LKR)</th>
-                                    <th style="width: 45px;"></th>
+                                    <th style="width: 140px;">Price Master Item</th>
+                                    <th style="width: 95px;">Profile Brand</th>
+                                    <th style="width: 140px;">Item Description</th>
+                                    <th style="width: 130px;">Aluminium Section</th>
+                                    <th style="width: 125px;">Glass Type</th>
+                                    <th style="width: 115px;">Colour / Finish</th>
+                                    <th style="width: 75px;">Width (mm)</th>
+                                    <th style="width: 75px;">Height (mm)</th>
+                                    <th style="width: 50px;">Qty</th>
+                                    <th style="width: 70px;">Sq.Ft</th>
+                                    <th style="width: 95px;">Unit Rate (LKR)</th>
+                                    <th style="width: 85px;">Labour (LKR)</th>
+                                    <th style="width: 70px;">Disc (LKR)</th>
+                                    <th style="width: 100px;">Total (LKR)</th>
+                                    <th style="width: 35px;"></th>
                                 </tr>
                             </thead>
                             <tbody id="q_itemsBody">
