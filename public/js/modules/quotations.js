@@ -943,7 +943,7 @@ class QuotationModule {
                         left: 50%;
                         transform: translate(-50%, -50%) rotate(-20deg);
                         width: 360px;
-                        opacity: 0.04;
+                        opacity: 0.07;
                         pointer-events: none;
                         z-index: 0;
                     }
