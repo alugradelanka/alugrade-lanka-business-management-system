@@ -626,6 +626,10 @@ class QuotationModule {
                 matCost = parseFloat(priceItem.brands[selectedBrand].materialCost) || 0;
                 labCost = parseFloat(priceItem.brands[selectedBrand].labourCost) || 0;
                 defRate = parseFloat(priceItem.brands[selectedBrand].defaultRate) || 0;
+            } else if (selectedBrand === 'SwissTek') {
+                matCost = Math.round(matCost * 0.95 * 100) / 100;
+                labCost = Math.round(labCost * 0.95 * 100) / 100;
+                defRate = Math.round(defRate * 0.95 * 100) / 100;
             }
 
             const totalRate = matCost + labCost + defRate;
