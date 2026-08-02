@@ -824,7 +824,7 @@ class QuotationModule {
                                 <thead class="table-light">
                                     <tr>
                                         <th>Description</th>
-                                        <th>Specs (Aluminium / Glass / Colour)</th>
+                                        <th>Specs (Brand / Section / Glass / Colour)</th>
                                         <th>Size (W×H)</th>
                                         <th>Qty</th>
                                         <th>Sq.Ft</th>
@@ -836,7 +836,7 @@ class QuotationModule {
                                         <tr>
                                             <td><strong>${item.description}</strong></td>
                                             <td>
-                                                <div class="small">Section: ${item.alumSection || '-'}</div>
+                                                <div class="small font-medium text-primary">Brand: ${item.brand || 'Alumex'} &nbsp;|&nbsp; Section: ${item.alumSection || '-'}</div>
                                                 <div class="small text-muted">Glass: ${item.glassType || '-'} | Color: ${item.colour || '-'}</div>
                                             </td>
                                             <td>${item.width} × ${item.height} mm</td>
@@ -1324,6 +1324,7 @@ class QuotationModule {
                                     <td>
                                         <strong style="color: #0F172A; font-size: 10.5px;">${item.description}</strong>
                                         <div style="color: #475569; font-size: 9px; margin-top: 2px;">
+                                            Brand: <strong style="color: #2563EB;">${item.brand || 'Alumex'}</strong> &nbsp;|&nbsp;
                                             Section: <strong>${item.alumSection || '-'}</strong> &nbsp;|&nbsp;
                                             Glass: <strong>${item.glassType || '-'}</strong> &nbsp;|&nbsp;
                                             Finish: <strong>${item.colour || '-'}</strong>

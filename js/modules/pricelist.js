@@ -131,7 +131,25 @@ class PriceListModule {
         }
       },
 
-      // Category 5: Glass, Accessories & Hardware
+      // Category 5: ACP Cladding, Skylights & Balustrades
+      {
+        id: 'PRC-ACP-001', category: 'ACP Cladding, Skylights & Balustrades', productName: 'Aluminium Composite Panel (ACP) Wall Cladding (PVDF)', unit: 'sq.ft',
+        materialCost: 1150.00, labourCost: 450.00, defaultRate: 500.00, status: 'Active', notes: '4mm PVDF ACP sheet + GI sub-frame steel grid',
+        brands: {
+          'Alumex': { materialCost: 1150.00, labourCost: 450.00, defaultRate: 500.00 },
+          'SwissTek': { materialCost: 1090.00, labourCost: 420.00, defaultRate: 470.00 }
+        }
+      },
+      {
+        id: 'PRC-ACP-003', category: 'ACP Cladding, Skylights & Balustrades', productName: 'Frameless Glass Balustrade (Base Track Channel)', unit: 'ft',
+        materialCost: 8500.00, labourCost: 2800.00, defaultRate: 3200.00, status: 'Active', notes: 'Heavy duty aluminium U-channel base + 15mm toughened glass',
+        brands: {
+          'Alumex': { materialCost: 8500.00, labourCost: 2800.00, defaultRate: 3200.00 },
+          'SwissTek': { materialCost: 8075.00, labourCost: 2660.00, defaultRate: 3040.00 }
+        }
+      },
+
+      // Category 6: Glass Master Catalog
       {
         id: 'PRC-GLS-002', category: 'Glass Master Catalog', productName: '6mm Tempered / Toughened Clear Glass', unit: 'sq.ft',
         materialCost: 750.00, labourCost: 220.00, defaultRate: 250.00, status: 'Active', notes: 'Grade A safety toughened glass',
@@ -146,6 +164,26 @@ class PriceListModule {
         brands: {
           'Alumex': { materialCost: 1450.00, labourCost: 420.00, defaultRate: 480.00 },
           'SwissTek': { materialCost: 1450.00, labourCost: 420.00, defaultRate: 480.00 }
+        }
+      },
+
+      // Category 7: Extrusions & Finishes
+      {
+        id: 'PRC-EXT-002', category: 'Extrusions & Finishes', productName: 'Matt Black Powder Coating (RAL 9005)', unit: 'sq.ft',
+        materialCost: 280.00, labourCost: 80.00, defaultRate: 100.00, status: 'Active', notes: 'Architectural grade matte black polyester powder coat',
+        brands: {
+          'Alumex': { materialCost: 280.00, labourCost: 80.00, defaultRate: 100.00 },
+          'SwissTek': { materialCost: 265.00, labourCost: 75.00, defaultRate: 95.00 }
+        }
+      },
+
+      // Category 8: Hardware & Accessories
+      {
+        id: 'PRC-HDW-002', category: 'Hardware & Accessories', productName: 'Hydraulic Floor Spring Unit (120kg Capacity)', unit: 'unit',
+        materialCost: 28000.00, labourCost: 6500.00, defaultRate: 7500.00, status: 'Active', notes: 'Dual valve speed adjustment hydraulic floor closer',
+        brands: {
+          'Alumex': { materialCost: 28000.00, labourCost: 6500.00, defaultRate: 7500.00 },
+          'SwissTek': { materialCost: 28000.00, labourCost: 6500.00, defaultRate: 7500.00 }
         }
       }
     ];
