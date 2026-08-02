@@ -328,19 +328,20 @@ class QuotationModule {
                         <table class="table table-bordered align-middle mb-0" id="q_itemsTable">
                             <thead class="table-light small uppercase">
                                 <tr>
-                                    <th style="min-width: 180px;">Item Description</th>
-                                    <th style="min-width: 170px;">Aluminium Section</th>
-                                    <th style="min-width: 160px;">Glass Type</th>
-                                    <th style="min-width: 140px;">Colour / Finish</th>
-                                    <th style="width: 120px;">Width (mm)</th>
-                                    <th style="width: 120px;">Height (mm)</th>
-                                    <th style="width: 90px;">Qty</th>
-                                    <th style="width: 100px;">Sq.Ft (Auto)</th>
-                                    <th style="width: 120px;">Unit Price (LKR)</th>
-                                    <th style="width: 110px;">Labour (LKR)</th>
-                                    <th style="width: 100px;">Disc (LKR)</th>
-                                    <th style="width: 130px;">Total (LKR)</th>
-                                    <th style="width: 50px;"></th>
+                                    <th style="min-width: 170px;">Price Master Item</th>
+                                    <th style="min-width: 160px;">Item Description</th>
+                                    <th style="min-width: 150px;">Aluminium Section</th>
+                                    <th style="min-width: 140px;">Glass Type</th>
+                                    <th style="min-width: 130px;">Colour / Finish</th>
+                                    <th style="width: 95px;">Width (mm)</th>
+                                    <th style="width: 95px;">Height (mm)</th>
+                                    <th style="width: 70px;">Qty</th>
+                                    <th style="width: 90px;">Sq.Ft (Auto)</th>
+                                    <th style="width: 110px;">Unit Rate (LKR)</th>
+                                    <th style="width: 100px;">Labour (LKR)</th>
+                                    <th style="width: 85px;">Disc (LKR)</th>
+                                    <th style="width: 120px;">Total (LKR)</th>
+                                    <th style="width: 45px;"></th>
                                 </tr>
                             </thead>
                             <tbody id="q_itemsBody">
@@ -473,7 +474,23 @@ class QuotationModule {
         tr.id = rowId;
         tr.className = 'align-top';
 
+        const priceList = window.priceListModule ? window.priceListModule.items : (JSON.parse(localStorage.getItem('alugrade_pricelist')) || []);
+        const priceOptions = priceList.map(p => {
+            const tot = (parseFloat(p.materialCost)||0) + (parseFloat(p.labourCost)||0) + (parseFloat(p.defaultRate)||0);
+            const isSel = item.priceMasterId === p.id || item.description === p.productName;
+            return `<option value="${p.id}" ${isSel ? 'selected' : ''}>${p.category.split(' ')[0]} | ${p.productName} (LKR ${tot.toLocaleString()}/${p.unit})</option>`;
+        }).join('');
+
         tr.innerHTML = `
+            <td>
+                <select class="form-select form-select-sm item-price-master-select" onchange="window.quotationModule.onProductSelect('${rowId}')">
+                    <option value="">-- Select Rate Item --</option>
+                    ${priceOptions}
+                </select>
+                <div class="item-price-warning text-danger font-medium mt-1" style="font-size:11px;display:none;">
+                    ⚠️ Rate missing from Price Master
+                </div>
+            </td>
             <td>
                 <input type="text" class="form-control form-control-sm item-desc" placeholder="e.g. Sliding Door 2-Track" value="${item.description || ''}" required>
             </td>
@@ -524,7 +541,7 @@ class QuotationModule {
                 <input type="number" step="0.01" class="form-control form-control-sm item-sqft text-end bg-light font-medium" value="${item.sqft || '10.76'}" readonly>
             </td>
             <td>
-                <input type="number" step="0.01" class="form-control form-control-sm item-price text-end" placeholder="LKR" value="${item.unitPrice || item.price || 2000}" oninput="window.quotationModule.calcRow('${rowId}')" required>
+                <input type="number" step="0.01" class="form-control form-control-sm item-price text-end font-bold" placeholder="LKR" value="${item.unitPrice || item.price || 2200}" oninput="window.quotationModule.calcRow('${rowId}')" required>
             </td>
             <td>
                 <input type="number" step="0.01" class="form-control form-control-sm item-labour text-end" placeholder="0" value="${item.labour || 0}" oninput="window.quotationModule.calcRow('${rowId}')">
@@ -542,16 +559,81 @@ class QuotationModule {
             </td>
         `;
         tbody.appendChild(tr);
+
+        if (item.priceMasterId) {
+            this.onProductSelect(rowId);
+        } else {
+            this.calcRow(rowId);
+        }
+    }
+
+    onProductSelect(rowId) {
+        const row = document.getElementById(rowId);
+        if (!row) return;
+
+        const priceSelect = row.querySelector('.item-price-master-select');
+        const warningBadge = row.querySelector('.item-price-warning');
+        const priceId = priceSelect ? priceSelect.value : '';
+
+        if (!priceId) {
+            if (warningBadge) {
+                warningBadge.style.display = 'block';
+                warningBadge.innerText = '⚠️ No Price Master rate selected';
+            }
+            this.calcRow(rowId);
+            return;
+        }
+
+        let priceItem = null;
+        if (window.priceListModule) {
+            priceItem = window.priceListModule.getItemById(priceId);
+        } else {
+            const stored = JSON.parse(localStorage.getItem('alugrade_pricelist') || '[]');
+            priceItem = stored.find(i => i.id === priceId);
+        }
+
+        if (!priceItem) {
+            if (warningBadge) {
+                warningBadge.style.display = 'block';
+                warningBadge.innerText = '⚠️ Rate missing from Price Master';
+            }
+        } else {
+            if (warningBadge) warningBadge.style.display = 'none';
+
+            const descInput = row.querySelector('.item-desc');
+            if (descInput && !descInput.value.trim()) {
+                descInput.value = priceItem.productName;
+            }
+
+            const totalRate = (parseFloat(priceItem.materialCost) || 0) + (parseFloat(priceItem.labourCost) || 0) + (parseFloat(priceItem.defaultRate) || 0);
+            if (row.querySelector('.item-price')) row.querySelector('.item-price').value = totalRate.toFixed(2);
+            if (row.querySelector('.item-labour')) row.querySelector('.item-labour').value = (parseFloat(priceItem.labourCost) || 0).toFixed(2);
+        }
+
         this.calcRow(rowId);
     }
 
     calcRow(rowId) {
         const row = document.getElementById(rowId);
         if (!row) return;
+
+        const priceSelect = row.querySelector('.item-price-master-select');
+        const warningBadge = row.querySelector('.item-price-warning');
+        const priceId = priceSelect ? priceSelect.value : '';
+
+        if (!priceId && priceSelect) {
+            if (warningBadge) {
+                warningBadge.style.display = 'block';
+                warningBadge.innerText = '⚠️ No Price Master rate selected';
+            }
+        } else if (warningBadge) {
+            warningBadge.style.display = 'none';
+        }
+
         const w = parseFloat(row.querySelector('.item-width').value) || 0;
         const h = parseFloat(row.querySelector('.item-height').value) || 0;
         const qty = parseFloat(row.querySelector('.item-qty').value) || 0;
-        const price = parseFloat(row.querySelector('.item-price').value) || 0;
+        const unitPrice = parseFloat(row.querySelector('.item-price').value) || 0;
         const labour = parseFloat(row.querySelector('.item-labour').value) || 0;
         const disc = parseFloat(row.querySelector('.item-disc').value) || 0;
 
@@ -563,8 +645,8 @@ class QuotationModule {
 
         row.querySelector('.item-sqft').value = sqft.toFixed(2);
 
-        // Total Amount = (sqft * unitPrice) + labour - discount
-        let total = (sqft * price) + labour - disc;
+        // Total Line Amount = (sqft * unitPrice) + labour - discount
+        let total = (sqft * unitPrice) + labour - disc;
         if (total < 0) total = 0;
 
         row.querySelector('.item-amount').value = total.toFixed(2);
@@ -605,6 +687,7 @@ class QuotationModule {
         const items = [];
         document.querySelectorAll('#q_itemsBody tr').forEach(row => {
             items.push({
+                priceMasterId: row.querySelector('.item-price-master-select')?.value || '',
                 description: row.querySelector('.item-desc').value,
                 alumSection: row.querySelector('.item-alum-section').value,
                 glassType: row.querySelector('.item-glass-type').value,
