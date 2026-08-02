@@ -197,12 +197,14 @@ class QuotationModule {
                 <td><span class="badge bg-${this.getStatusColor(q.status)}">${q.status}</span></td>
                 <td class="text-end">
                     <div class="btn-group btn-group-sm">
-                        <button class="btn btn-outline-primary" onclick="window.quotationModule.renderDetail('${q.id}')" title="View Details">View</button>
-                        <button class="btn btn-outline-secondary" onclick="window.quotationModule.renderNewForm('${q.id}')" title="Edit">Edit</button>
-                        <button class="btn btn-outline-info" onclick="window.quotationModule.printQuotation('${q.id}')" title="Print Document">Print</button>
-                        ${q.status !== 'Approved' ? `<button class="btn btn-outline-success" onclick="window.quotationModule.approveQuotation('${q.id}')" title="Approve">Approve</button>` : ''}
-                        ${q.status === 'Approved' ? `<button class="btn btn-success" onclick="window.quotationModule.convertToOrder('${q.id}')" title="Convert to Order">To Order</button>` : ''}
-                        <button class="btn btn-outline-danger" onclick="window.quotationModule.delete('${q.id}')" title="Delete">Del</button>
+                        <button class="btn btn-outline-primary" onclick="window.quotationModule.renderDetail('${q.id}')" title="View Details"><i class="fas fa-eye"></i> View</button>
+                        <button class="btn btn-outline-secondary" onclick="window.quotationModule.renderNewForm('${q.id}')" title="Edit"><i class="fas fa-edit"></i> Edit</button>
+                        <button class="btn btn-outline-info" onclick="window.quotationModule.printQuotation('${q.id}')" title="Print Document"><i class="fas fa-print"></i> Print</button>
+                        <button class="btn btn-outline-dark" onclick="window.quotationModule.duplicateQuotation('${q.id}')" title="Duplicate Quotation"><i class="fas fa-copy"></i> Copy</button>
+                        ${q.status === 'Draft' ? `<button class="btn btn-outline-warning" onclick="window.quotationModule.markAsSent('${q.id}')" title="Mark as Sent"><i class="fas fa-paper-plane"></i> Sent</button>` : ''}
+                        ${q.status !== 'Approved' ? `<button class="btn btn-outline-success" onclick="window.quotationModule.approveQuotation('${q.id}')" title="Approve"><i class="fas fa-check"></i> Approve</button>` : ''}
+                        ${q.status === 'Approved' ? `<button class="btn btn-success" onclick="window.quotationModule.convertToOrder('${q.id}')" title="Convert to Order"><i class="fas fa-industry"></i> To Order</button>` : ''}
+                        <button class="btn btn-outline-danger" onclick="window.quotationModule.delete('${q.id}')" title="Delete"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </td>
             </tr>
@@ -924,6 +926,40 @@ class QuotationModule {
             this.saveQuotations();
             this.render();
         }
+    }
+
+    markAsSent(id) {
+        const index = this.quotations.findIndex(x => x.id === id);
+        if (index > -1) {
+            this.quotations[index].status = 'Sent';
+            this.quotations[index].timeline = this.quotations[index].timeline || [];
+            this.quotations[index].timeline.push({ date: new Date().toISOString(), event: 'Quotation Marked as Sent' });
+            this.saveQuotations();
+            this.render();
+        }
+    }
+
+    duplicateQuotation(id) {
+        const orig = this.quotations.find(x => x.id === id);
+        if (!orig) return;
+
+        const copy = JSON.parse(JSON.stringify(orig));
+        copy.id = this.generateId();
+        copy.date = new Date().toISOString().split('T')[0];
+        
+        const validDate = new Date();
+        validDate.setDate(validDate.getDate() + 30);
+        copy.validUntil = validDate.toISOString().split('T')[0];
+
+        copy.status = 'Draft';
+        copy.timeline = [
+            { date: new Date().toISOString(), event: `Duplicated from ${orig.id}` }
+        ];
+
+        this.quotations.unshift(copy);
+        this.saveQuotations();
+        alert(`Quotation ${orig.id} duplicated successfully as new draft ${copy.id}!`);
+        this.renderNewForm(copy.id);
     }
 
     renderPrintView(id) {
