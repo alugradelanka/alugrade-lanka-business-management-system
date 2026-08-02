@@ -1247,8 +1247,12 @@ class QuotationModule {
                     }
 
                     @media print {
-                        body { padding: 0; }
+                        body { padding: 0; margin: 0; }
                         .no-print { display: none !important; }
+                        thead { display: table-header-group; }
+                        tfoot { display: table-footer-group; }
+                        tr { page-break-inside: avoid; }
+                        .financial-wrapper, .signature-area { page-break-inside: avoid; }
                     }
                 </style>
             </head>
