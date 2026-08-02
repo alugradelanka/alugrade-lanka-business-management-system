@@ -13,6 +13,7 @@ class AlugradeApp {
       { id: 'dashboard',    label: 'Dashboard',        icon: 'layout-dashboard', route: '#/dashboard',    group: 'MAIN' },
       { id: 'customers',    label: 'Customers',        icon: 'users',            route: '#/customers',    group: 'OPERATIONS' },
       { id: 'quotations',   label: 'Quotations',       icon: 'file-text',        route: '#/quotations',   group: 'OPERATIONS' },
+      { id: 'pricelist',    label: 'Price Master',     icon: 'tags',             route: '#/pricelist',    group: 'OPERATIONS' },
       { id: 'orders',       label: 'Orders',           icon: 'shopping-cart',    route: '#/orders',       group: 'OPERATIONS' },
       { id: 'production',   label: 'Production',       icon: 'cog',              route: '#/production',   group: 'OPERATIONS' },
       { id: 'delivery',     label: 'Delivery',         icon: 'truck',            route: '#/delivery',     group: 'OPERATIONS' },
@@ -99,6 +100,7 @@ class AlugradeApp {
     // Some modules take no args, some take 'pageContent' containerId
     const noArgModules = {
       'dashboard':    window.DashboardModule,
+      'pricelist':    window.PriceListModule,
       'orders':       window.OrderModule,
       'inventory':    window.InventoryModule,
       'payments':     window.PaymentModule,
@@ -176,6 +178,7 @@ class AlugradeApp {
 
     // Assign global window handles for inline onclick handlers across templates
     window.dashboardModule = this.modules['dashboard'];
+    window.priceListModule = this.modules['pricelist'];
     window.customerModule  = this.modules['customers'];
     window.orderModule     = this.modules['orders'];
     window.quotationModule = this.modules['quotations'];
@@ -191,6 +194,7 @@ class AlugradeApp {
 
     // Direct property aliases on app instance
     this.dashboard  = this.modules['dashboard'];
+    this.pricelist  = this.modules['pricelist'];
     this.customers  = this.modules['customers'];
     this.orders     = this.modules['orders'];
     this.quotations = this.modules['quotations'];
