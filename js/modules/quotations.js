@@ -329,18 +329,19 @@ class QuotationModule {
                             <thead class="table-light small uppercase">
                                 <tr>
                                     <th style="min-width: 170px;">Price Master Item</th>
+                                    <th style="min-width: 115px;">Profile Brand</th>
                                     <th style="min-width: 160px;">Item Description</th>
                                     <th style="min-width: 150px;">Aluminium Section</th>
                                     <th style="min-width: 140px;">Glass Type</th>
                                     <th style="min-width: 130px;">Colour / Finish</th>
-                                    <th style="width: 95px;">Width (mm)</th>
-                                    <th style="width: 95px;">Height (mm)</th>
-                                    <th style="width: 70px;">Qty</th>
-                                    <th style="width: 90px;">Sq.Ft (Auto)</th>
-                                    <th style="width: 110px;">Unit Rate (LKR)</th>
-                                    <th style="width: 100px;">Labour (LKR)</th>
-                                    <th style="width: 85px;">Disc (LKR)</th>
-                                    <th style="width: 120px;">Total (LKR)</th>
+                                    <th style="width: 90px;">Width (mm)</th>
+                                    <th style="width: 90px;">Height (mm)</th>
+                                    <th style="width: 65px;">Qty</th>
+                                    <th style="width: 85px;">Sq.Ft (Auto)</th>
+                                    <th style="width: 105px;">Unit Rate (LKR)</th>
+                                    <th style="width: 95px;">Labour (LKR)</th>
+                                    <th style="width: 80px;">Disc (LKR)</th>
+                                    <th style="width: 115px;">Total (LKR)</th>
                                     <th style="width: 45px;"></th>
                                 </tr>
                             </thead>
@@ -478,8 +479,10 @@ class QuotationModule {
         const priceOptions = priceList.map(p => {
             const tot = (parseFloat(p.materialCost)||0) + (parseFloat(p.labourCost)||0) + (parseFloat(p.defaultRate)||0);
             const isSel = item.priceMasterId === p.id || item.description === p.productName;
-            return `<option value="${p.id}" ${isSel ? 'selected' : ''}>${p.category.split(' ')[0]} | ${p.productName} (LKR ${tot.toLocaleString()}/${p.unit})</option>`;
+            return `<option value="${p.id}" ${isSel ? 'selected' : ''}>${p.category.split(' ')[0]} | ${p.productName}</option>`;
         }).join('');
+
+        const currentBrand = item.brand || 'Alumex';
 
         tr.innerHTML = `
             <td>
@@ -490,6 +493,12 @@ class QuotationModule {
                 <div class="item-price-warning text-danger font-medium mt-1" style="font-size:11px;display:none;">
                     ⚠️ Rate missing from Price Master
                 </div>
+            </td>
+            <td>
+                <select class="form-select form-select-sm item-brand-select" onchange="window.quotationModule.onProductSelect('${rowId}')">
+                    <option value="Alumex" ${currentBrand === 'Alumex' ? 'selected' : ''}>Alumex</option>
+                    <option value="SwissTek" ${currentBrand === 'SwissTek' ? 'selected' : ''}>SwissTek</option>
+                </select>
             </td>
             <td>
                 <input type="text" class="form-control form-control-sm item-desc" placeholder="e.g. Sliding Door 2-Track" value="${item.description || ''}" required>
@@ -572,8 +581,10 @@ class QuotationModule {
         if (!row) return;
 
         const priceSelect = row.querySelector('.item-price-master-select');
+        const brandSelect = row.querySelector('.item-brand-select');
         const warningBadge = row.querySelector('.item-price-warning');
         const priceId = priceSelect ? priceSelect.value : '';
+        const selectedBrand = brandSelect ? brandSelect.value : 'Alumex';
 
         if (!priceId) {
             if (warningBadge) {
@@ -605,9 +616,19 @@ class QuotationModule {
                 descInput.value = priceItem.productName;
             }
 
-            const totalRate = (parseFloat(priceItem.materialCost) || 0) + (parseFloat(priceItem.labourCost) || 0) + (parseFloat(priceItem.defaultRate) || 0);
+            let matCost = parseFloat(priceItem.materialCost) || 0;
+            let labCost = parseFloat(priceItem.labourCost) || 0;
+            let defRate = parseFloat(priceItem.defaultRate) || 0;
+
+            if (priceItem.brands && priceItem.brands[selectedBrand]) {
+                matCost = parseFloat(priceItem.brands[selectedBrand].materialCost) || 0;
+                labCost = parseFloat(priceItem.brands[selectedBrand].labourCost) || 0;
+                defRate = parseFloat(priceItem.brands[selectedBrand].defaultRate) || 0;
+            }
+
+            const totalRate = matCost + labCost + defRate;
             if (row.querySelector('.item-price')) row.querySelector('.item-price').value = totalRate.toFixed(2);
-            if (row.querySelector('.item-labour')) row.querySelector('.item-labour').value = (parseFloat(priceItem.labourCost) || 0).toFixed(2);
+            if (row.querySelector('.item-labour')) row.querySelector('.item-labour').value = labCost.toFixed(2);
         }
 
         this.calcRow(rowId);
@@ -688,6 +709,7 @@ class QuotationModule {
         document.querySelectorAll('#q_itemsBody tr').forEach(row => {
             items.push({
                 priceMasterId: row.querySelector('.item-price-master-select')?.value || '',
+                brand: row.querySelector('.item-brand-select')?.value || 'Alumex',
                 description: row.querySelector('.item-desc').value,
                 alumSection: row.querySelector('.item-alum-section').value,
                 glassType: row.querySelector('.item-glass-type').value,
