@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventory Module QA Verification</title>
+    <style>
+        body { padding: 20px; font-family: sans-serif; background: #f8fafc; }
+    </style>
+</head>
+<body>
+    <div id="pageContent" style="width: 1200px; margin: 0 auto;"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/modules/inventory.js"></script>
+    <script>
+        window.errorsFound = [];
+        window.onerror = function(msg, url, line) {
+            window.errorsFound.push({ msg, url, line });
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                window.inventoryModule = new InventoryModule();
+                window.inventoryModule.render();
+
+                console.log('InventoryModule loaded successfully!');
+                console.log('Total Inventory Items loaded:', window.inventoryModule.items.length);
+
+                // Test auto stock reduction
+                const initialAluStock = window.inventoryModule.items[0].currentStock;
+                window.inventoryModule.autoReduceStock('JOB-TEST-999');
+                const afterAluStock = window.inventoryModule.items[0].currentStock;
+                console.log(`Auto stock reduction verified: ${initialAluStock} -> ${afterAluStock}`);
+
+                // Test item code generation
+                const newCode = window.inventoryModule.generateItemId('Aluminium Profiles');
+                console.log('Generated Aluminium Code:', newCode);
+                if (!newCode.startsWith('ALU-')) {
+                    window.errorsFound.push(`Generated code ${newCode} does not start with ALU-`);
+                }
+
+                // Test Print View generation
+                const printHtml = window.inventoryModule.renderPrintView();
+                if (!printHtml || printHtml.length < 500) {
+                    window.errorsFound.push('Inventory renderPrintView returned invalid HTML');
+                } else {
+                    console.log('Inventory Valuation Print View generated, HTML length:', printHtml.length);
+                }
+
+                // Render back to list
+                window.inventoryModule.render();
+                document.body.setAttribute('data-qa-complete', 'true');
+            } catch (err) {
+                console.error('QA Exception:', err);
+                window.errorsFound.push(err.message || String(err));
+            }
+        });
+    </script>
+</body>
+</html>
