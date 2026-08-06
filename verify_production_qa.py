@@ -1,0 +1,95 @@
+import os
+import subprocess
+
+html_content = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Production Module QA Verification</title>
+    <style>
+        body { padding: 20px; font-family: sans-serif; background: #f8fafc; }
+    </style>
+</head>
+<body>
+    <div id="pageContent" style="width: 1200px; margin: 0 auto;"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/modules/production.js"></script>
+    <script>
+        window.errorsFound = [];
+        window.onerror = function(msg, url, line) {
+            window.errorsFound.push({ msg, url, line });
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                window.productionModule = new ProductionModule();
+                window.productionModule.render();
+
+                console.log('ProductionModule loaded successfully!');
+                console.log('Total Jobs loaded:', window.productionModule.jobs.length);
+
+                // Test 1-click job card generation from dummy Sales Order
+                const testOrder = {
+                    id: 'ORD-2026-8888',
+                    customerName: 'Homagama Medical Complex',
+                    customerPhone: '0702795702',
+                    projectName: 'Surgical Operating Theatre Partitions',
+                    siteAddress: 'Homagama Base Hospital',
+                    productName: '100mm Heavy Duty Partition Wall System',
+                    profileBrand: 'Alumex',
+                    expectedDate: '2026-08-20',
+                    remarks: 'Cleanroom gasket seals required.',
+                    items: [
+                        {
+                            description: 'Acoustic Glass Partition Panel',
+                            alumSection: 'Shopfront Framing (100mm)',
+                            glassType: '12mm Laminated Clear',
+                            colour: 'Powder Coated White',
+                            width: 2400,
+                            height: 2700,
+                            qty: 3
+                        }
+                    ]
+                };
+
+                window.productionModule.createJobFromOrder(testOrder);
+                const newJob = window.productionModule.jobs[0];
+                console.log('Generated Job Card:', newJob.jobNo);
+                console.log('Cutting List items:', newJob.cuttingList ? newJob.cuttingList.length : 0);
+                console.log('Glass Order items:', newJob.glassOrder ? newJob.glassOrder.length : 0);
+
+                // Test advancing stage
+                window.productionModule.advanceStage(newJob.jobNo);
+                console.log('Advanced stage to:', newJob.stage);
+
+                // Test Detail View
+                window.productionModule.renderJobDetail(newJob.jobNo);
+
+                // Test Print View generation
+                const printHtml = window.productionModule.renderPrintView(newJob.jobNo);
+                if (!printHtml || printHtml.length < 500) {
+                    window.errorsFound.push('renderPrintView returned invalid HTML');
+                } else {
+                    console.log('Job Card Print View generated, HTML length:', printHtml.length);
+                }
+
+                // Render back to board
+                window.productionModule.render();
+                document.body.setAttribute('data-qa-complete', 'true');
+            } catch (err) {
+                console.error('QA Exception:', err);
+                window.errorsFound.push(err.message || String(err));
+            }
+        });
+    </script>
+</body>
+</html>'''
+
+with open('test_production_qa.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print('Created test_production_qa.html successfully!')
