@@ -286,7 +286,7 @@ class QuotationModule {
                             <label class="form-label font-medium">Customer Selection & Search <span class="text-danger">*</span></label>
                             <div class="input-group">
                                 <span class="input-group-text bg-light"><i class="fas fa-user-tie text-muted"></i></span>
-                                <input type="text" class="form-control" id="q_customerName" placeholder="Type customer or company name..." value="${q ? q.customerName : ''}" required list="customerListOptions">
+                                <input type="text" class="form-control" id="q_customerName" placeholder="Type customer or company name..." value="${q ? q.customerName : ''}" required list="customerListOptions" onchange="window.quotationModule.onCustomerSelect(this.value)">
                                 <datalist id="customerListOptions">
                                     <option value="Jayasinghe Construction (Pvt) Ltd">
                                     <option value="Kottawa Villa Projects">
@@ -575,6 +575,25 @@ class QuotationModule {
             this.onProductSelect(rowId);
         } else {
             this.calcRow(rowId);
+        }
+    }
+
+    onCustomerSelect(customerName) {
+        if (!customerName) return;
+        let customer = null;
+        if (window.customerModule && window.customerModule.customers) {
+            customer = window.customerModule.customers.find(c => c.name && c.name.toLowerCase() === customerName.toLowerCase());
+        } else {
+            const stored = JSON.parse(localStorage.getItem('alugrade_customers') || '[]');
+            customer = stored.find(c => c.name && c.name.toLowerCase() === customerName.toLowerCase());
+        }
+        if (customer) {
+            if (document.getElementById('q_customerPhone')) document.getElementById('q_customerPhone').value = customer.phone || customer.mobile || '';
+            if (document.getElementById('q_customerEmail')) document.getElementById('q_customerEmail').value = customer.email || '';
+            if (document.getElementById('q_billingAddress')) document.getElementById('q_billingAddress').value = customer.address || customer.billingAddress || '';
+            if (document.getElementById('q_siteAddress') && !document.getElementById('q_siteAddress').value) {
+                document.getElementById('q_siteAddress').value = customer.siteAddress || customer.address || '';
+            }
         }
     }
 
