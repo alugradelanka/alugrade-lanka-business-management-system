@@ -1,6 +1,7 @@
 /**
  * Payment Management Module for ALUGRADE BMS
  * Commercial Enterprise Edition
+ * Full Payment Lifecycle: Record Customer Settlement -> Auto-update Invoice Balance -> Generate Official Receipt (REC) -> A4 Print View
  */
 
 class PaymentModule {
@@ -67,20 +68,32 @@ class PaymentModule {
         localStorage.setItem('alugrade_payments', JSON.stringify(this.payments));
     }
 
+    generatePayNo() {
+        const year = new Date().getFullYear();
+        const count = this.payments.length + 1;
+        return `PAY-${year}-${count.toString().padStart(4, '0')}`;
+    }
+
+    generateReceiptNo() {
+        const year = new Date().getFullYear();
+        const count = this.payments.length + 91;
+        return `REC-${year}-${count.toString().padStart(4, '0')}`;
+    }
+
     render() {
         const container = document.getElementById(this.containerId) || document.getElementById('pageContent') || document.body;
 
         const totalReceived = this.payments.reduce((sum, p) => sum + (p.amount || 0), 0);
         const todayStr = new Date().toISOString().split('T')[0];
         const todaysCash = this.payments.filter(p => p.paymentDate === todayStr && p.method === 'Cash').reduce((sum, p) => sum + (p.amount || 0), 0);
-        const todaysTransfers = this.payments.filter(p => p.paymentDate === todayStr && p.method === 'Bank Transfer').reduce((sum, p) => sum + (p.amount || 0), 0);
+        const todaysTransfers = this.payments.filter(p => p.paymentDate === todayStr && (p.method === 'Bank Transfer' || p.method === 'Cheque')).reduce((sum, p) => sum + (p.amount || 0), 0);
         const totalOutstanding = 285580; // Receivables sum
 
         let html = `
             <div class="page-header d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h2 class="mb-0 font-bold" style="color: var(--color-brand-charcoal); font-size: 1.6rem;">Payment & Receipt Management</h2>
-                    <p class="text-muted small mb-0">Record customer settlements, advance deposits, generate receipts, and track daily cash collections</p>
+                    <h2 class="mb-0 font-bold" style="color: var(--color-brand-charcoal); font-size: 1.6rem;">Payment & Official Receipt Management</h2>
+                    <p class="text-muted small mb-0">Record customer settlements, advance deposits, generate receipts, and track daily cash & bank collections</p>
                 </div>
                 <button class="btn btn-primary" onclick="window.paymentModule.renderNewForm()">
                     <i class="fas fa-money-bill-wave me-1"></i> + Record Payment
@@ -103,7 +116,7 @@ class PaymentModule {
                 </div>
                 <div class="col-md-3">
                     <div class="card p-3" style="background: #ffffff; border: 1px solid var(--color-border); border-left: 4px solid #6366F1; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);">
-                        <div class="text-muted small uppercase font-medium">Bank Transfers Today</div>
+                        <div class="text-muted small uppercase font-medium">Bank & Cheques Today</div>
                         <h3 class="mb-0 font-bold text-info mt-1">LKR ${todaysTransfers.toLocaleString('en-US', {minimumFractionDigits:2})}</h3>
                     </div>
                 </div>
@@ -258,7 +271,8 @@ class PaymentModule {
                 <td class="text-end">
                     <div class="btn-group btn-group-sm">
                         <button class="btn btn-outline-primary" onclick="window.paymentModule.renderReceiptModal('${p.payNo}')">Receipt</button>
-                        <button class="btn btn-outline-info" onclick="window.paymentModule.printReceipt('${p.payNo}')">Print</button>
+                        <button class="btn btn-outline-info" onclick="window.paymentModule.printReceipt('${p.payNo}')" title="Print Official Receipt"><i class="fas fa-print"></i></button>
+                        <button class="btn btn-outline-danger" onclick="window.paymentModule.deletePayment('${p.payNo}')" title="Delete"><i class="fas fa-trash-alt"></i></button>
                     </div>
                 </td>
             `;
@@ -275,8 +289,8 @@ class PaymentModule {
         let existingModal = document.getElementById(modalId);
         if (existingModal) existingModal.remove();
 
-        const newPayNo = 'PAY-2026-' + (this.payments.length + 1).toString().padStart(4, '0');
-        const newReceiptNo = 'REC-2026-' + (this.payments.length + 91).toString().padStart(4, '0');
+        const newPayNo = this.generatePayNo();
+        const newReceiptNo = this.generateReceiptNo();
 
         const html = `
             <div class="modal fade" id="${modalId}" tabindex="-1" aria-hidden="true">
@@ -402,6 +416,25 @@ class PaymentModule {
         data.remainingBalance = Math.max(0, data.invoiceTotal - (data.previousPayments + data.amount));
         data.status = data.remainingBalance <= 0 ? 'Paid' : 'Partial';
 
+        // Auto update invoice in InvoiceModule if exists
+        const invoices = JSON.parse(localStorage.getItem('alugrade_invoices') || '[]');
+        const targetInv = invoices.find(i => i.id === data.invoiceId);
+        if (targetInv) {
+            targetInv.advanceReceived = (targetInv.advanceReceived || 0) + data.amount;
+            targetInv.balance = Math.max(0, targetInv.grandTotal - targetInv.advanceReceived);
+            if (targetInv.balance <= 0) targetInv.status = 'Fully Paid';
+            else targetInv.status = 'Partially Paid';
+            targetInv.payments = targetInv.payments || [];
+            targetInv.payments.push({
+                date: data.paymentDate,
+                amount: data.amount,
+                method: data.method,
+                reference: data.reference || 'Customer Payment',
+                receiptNo: data.receiptNo
+            });
+            localStorage.setItem('alugrade_invoices', JSON.stringify(invoices));
+        }
+
         this.payments.unshift(data);
         this.savePayments();
 
@@ -415,7 +448,14 @@ class PaymentModule {
             }
         }
 
-        alert(`Payment ${data.payNo} recorded successfully!`);
+        alert(`Payment ${data.payNo} recorded and Receipt ${data.receiptNo} issued successfully!`);
+        this.render();
+    }
+
+    deletePayment(payNo) {
+        if (!confirm(`Are you sure you want to delete Payment ${payNo}?`)) return;
+        this.payments = this.payments.filter(p => p.payNo !== payNo);
+        this.savePayments();
         this.render();
     }
 
@@ -438,7 +478,6 @@ class PaymentModule {
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body p-4" id="receipt-print-area">
-                            <!-- Header with White ALUGRADE Logo -->
                             <div class="d-flex justify-content-between align-items-center pb-4 border-bottom mb-4">
                                 <div class="d-flex align-items-center gap-3">
                                     <div style="background: #ffffff; padding: 8px 14px; border-radius: 12px; border: 1px solid var(--color-border);">
@@ -450,7 +489,7 @@ class PaymentModule {
                                     </div>
                                 </div>
                                 <div class="text-end">
-                                    <h4 class="font-bold text-success mb-0">PAYMENT RECEIPT</h4>
+                                    <h4 class="font-bold text-success mb-0">OFFICIAL RECEIPT</h4>
                                     <div class="small font-bold text-main">${pay.receiptNo || pay.payNo}</div>
                                 </div>
                             </div>
@@ -474,7 +513,6 @@ class PaymentModule {
                                 <span class="badge bg-success font-medium">Payment Method: ${pay.method} (${pay.reference || 'Direct Deposit'})</span>
                             </div>
 
-                            <!-- Managing Director Signature Block -->
                             <div class="row g-4 pt-4 border-top">
                                 <div class="col-md-6">
                                     <p class="small text-muted mb-0">Thank you for your payment!<br>ALUGRADE LANKA FAB & GLASS Official Receipt.</p>
@@ -493,7 +531,7 @@ class PaymentModule {
                         </div>
                         <div class="modal-footer bg-light p-3">
                             <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" class="btn btn-primary px-4" onclick="window.print()"><i class="fas fa-print me-1"></i> Print Receipt</button>
+                            <button type="button" class="btn btn-primary px-4" onclick="window.paymentModule.printReceipt('${pay.payNo}')"><i class="fas fa-print me-1"></i> Print Receipt</button>
                         </div>
                     </div>
                 </div>
@@ -511,8 +549,96 @@ class PaymentModule {
         }
     }
 
+    renderPrintView(payNo) {
+        const pay = this.payments.find(p => p.payNo === payNo);
+        if (!pay) return '';
+
+        return `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>Official Payment Receipt ${pay.receiptNo || pay.payNo} - ALUGRADE LANKA</title>
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+                <style>
+                    @page { size: A4 portrait; margin: 10mm 12mm; }
+                    * { box-sizing: border-box; }
+                    body { font-family: 'Inter', sans-serif; padding: 20px; color: #0F172A; font-size: 11px; }
+                    .header-container { display: flex; justify-content: space-between; align-items: center; border-bottom: 2.5px solid #16A34A; padding-bottom: 14px; margin-bottom: 16px; }
+                    .company-title { font-family: 'Montserrat', sans-serif; font-size: 17px; font-weight: 800; }
+                    .doc-badge { background: #16A34A; color: #ffffff; font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 800; padding: 4px 14px; border-radius: 6px; }
+                    .amount-box { background: #F0FDF4; border: 1.5px solid #16A34A; border-radius: 10px; padding: 16px; text-align: center; margin: 20px 0; }
+                    .amount-text { font-size: 26px; font-weight: 800; color: #16A34A; }
+                    .signature-area { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 30px; }
+                    .sig-block { text-align: center; width: 200px; }
+                    .sig-block img { height: 45px; }
+                    .sig-line { border-top: 1.5px solid #0F172A; margin-top: 6px; }
+                </style>
+            </head>
+            <body>
+                <div class="header-container">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <img src="assets/logo/logo.png" style="height: 60px;" />
+                        <div>
+                            <div class="company-title">ALUGRADE LANKA FAB & GLASS</div>
+                            <div style="color:#16A34A; font-weight:700;">OFFICIAL PAYMENT RECEIPT</div>
+                        </div>
+                    </div>
+                    <div style="text-align:right;">
+                        <div class="doc-badge">PAYMENT RECEIPT</div>
+                        <div style="margin-top:4px;"><strong>Receipt No:</strong> ${pay.receiptNo || pay.payNo}</div>
+                        <div><strong>Date:</strong> ${pay.paymentDate}</div>
+                    </div>
+                </div>
+
+                <div style="display:flex; justify-content:space-between; margin-bottom:16px; background:#F8FAFC; padding:12px; border-radius:8px;">
+                    <div>
+                        <div style="color:#64748B; font-size:9.5px; text-transform:uppercase;">Received From:</div>
+                        <strong style="font-size:13px;">${pay.customerName}</strong><br>
+                        Phone: ${pay.customerPhone || 'N/A'}
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="color:#64748B; font-size:9.5px; text-transform:uppercase;">Linked Invoice & Order:</div>
+                        <strong>${pay.invoiceId || '-'}</strong> (${pay.orderId || '-'})
+                    </div>
+                </div>
+
+                <div class="amount-box">
+                    <div style="color:#64748B; font-size:10px; text-transform:uppercase;">Sum Received</div>
+                    <div class="amount-text">LKR ${(pay.amount || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</div>
+                    <div style="font-size:11px; margin-top:4px;">Method: <strong>${pay.method}</strong> (${pay.reference || 'Direct Credit'})</div>
+                </div>
+
+                <div class="signature-area">
+                    <div>
+                        <strong>ALUGRADE LANKA FAB & GLASS</strong><br>
+                        Homagama Base Office & Workshop
+                    </div>
+                    <div class="sig-block">
+                        <img src="assets/signature/signature.png" />
+                        <div class="sig-line"></div>
+                        <div>MR. M. U. RAJAPAKSHA</div>
+                        <div style="font-size:9px; color:#64748B;">Managing Director</div>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `;
+    }
+
     printReceipt(payNo) {
-        window.print();
+        const html = this.renderPrintView(payNo);
+        if (!html) return;
+        const printWindow = window.open('', '_blank', 'width=850,height=900');
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 500);
     }
 
     exportListExcel() {
@@ -533,7 +659,7 @@ class PaymentModule {
 // Payment Gateway Provider Architecture interface for future PayHere / WebXPay integrations
 class OnlinePaymentGateway {
     constructor(provider = 'PayHere') {
-        this.provider = provider; // 'PayHere' or 'WebXPay'
+        this.provider = provider;
         this.isSandbox = true;
     }
 

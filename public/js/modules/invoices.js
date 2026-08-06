@@ -1,6 +1,7 @@
 /**
  * Invoice Management Module for ALUGRADE BMS
  * Commercial Enterprise Edition
+ * Full Commercial Workflow: Completed Delivery -> Tax Invoice (INV) -> VAT (18%) -> Advance Deduction -> Balance -> Payment Recording -> Official Receipt
  */
 
 class InvoiceModule {
@@ -41,10 +42,10 @@ class InvoiceModule {
                 notes: 'Thank you for your business. Full payment received via Bank Transfer.',
                 terms: 'Goods remain property of ALUGRADE LANKA FAB & GLASS until paid in full.',
                 items: [
-                    { description: 'Matt Black 3-Track Sliding Glass Door', details: '3000mm x 2400mm with 8mm Tinted Glass', qty: 1, price: 294500, amount: 294500 }
+                    { description: 'Matt Black 3-Track Sliding Glass Door', details: '3000mm x 2400mm with 8mm Tinted Glass (SwissTek)', qty: 1, price: 294500, amount: 294500 }
                 ],
                 payments: [
-                    { date: '2026-07-29', amount: 335710, method: 'Bank Transfer', reference: 'TRF-994120' }
+                    { date: '2026-07-29', amount: 335710, method: 'Bank Transfer', reference: 'TRF-994120', receiptNo: 'REC-2026-0090' }
                 ],
                 timeline: [
                     { title: 'Invoice Issued from Delivery DN-2026-0001', date: '2026-07-31 11:30 AM', user: 'Accounts Dept' },
@@ -73,10 +74,10 @@ class InvoiceModule {
                 notes: 'Advance deposit received upon order placement. Balance due on completion.',
                 terms: 'Late payments are subject to a 2% monthly interest fee.',
                 items: [
-                    { description: '100mm Heavy Duty Aluminium Partition Framing', details: '2400mm x 2100mm with 6mm Tempered Glass', qty: 4, price: 119339, amount: 477356 }
+                    { description: '100mm Heavy Duty Aluminium Partition Framing', details: '2400mm x 2100mm with 6mm Tempered Glass (Alumex)', qty: 4, price: 119339, amount: 477356 }
                 ],
                 payments: [
-                    { date: '2026-07-31', amount: 260000, method: 'Cheque Deposit', reference: 'CHQ-445102' }
+                    { date: '2026-07-31', amount: 260000, method: 'Cheque Deposit', reference: 'CHQ-445102', receiptNo: 'REC-2026-0089' }
                 ],
                 timeline: [
                     { title: 'Advance Payment Recorded (LKR 260,000)', date: '2026-07-31 10:15 AM', user: 'Accounts' }
@@ -92,21 +93,27 @@ class InvoiceModule {
         localStorage.setItem('alugrade_invoices', JSON.stringify(this.invoices));
     }
 
+    generateInvId() {
+        const year = new Date().getFullYear();
+        const count = this.invoices.length + 1;
+        return `INV-${year}-${count.toString().padStart(4, '0')}`;
+    }
+
     render() {
         const container = document.getElementById(this.containerId) || document.getElementById('pageContent') || document.body;
 
         let html = `
             <div class="page-header d-flex justify-content-between align-items-center mb-4">
                 <div>
-                    <h2 class="mb-0 font-bold" style="color: var(--color-brand-charcoal); font-size: 1.6rem;">Commercial Invoice Management</h2>
-                    <p class="text-muted small mb-0">Generate commercial invoices, manage billing status, track VAT (18%), and record customer payments</p>
+                    <h2 class="mb-0 font-bold" style="color: var(--color-brand-charcoal); font-size: 1.6rem;">Commercial Invoice & Financial Management</h2>
+                    <p class="text-muted small mb-0">Full Billing Lifecycle: Delivery Completed → Commercial Tax Invoice → VAT (18%) → Advance Credit → Payment Settlement</p>
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-outline-secondary" onclick="window.invoiceModule.showConvertDeliveryModal()">
-                        <i class="fas fa-truck text-primary me-1"></i> Generate from Delivery Note
+                        <i class="fas fa-truck text-primary me-1"></i> Issue Invoice from Delivery
                     </button>
                     <button class="btn btn-primary" onclick="window.invoiceModule.renderNewForm()">
-                        <i class="fas fa-plus-circle me-1"></i> + Create New Invoice
+                        <i class="fas fa-plus-circle me-1"></i> + Create Commercial Invoice
                     </button>
                 </div>
             </div>
@@ -118,7 +125,6 @@ class InvoiceModule {
                 <li class="nav-item"><button class="nav-link font-medium" onclick="window.invoiceModule.filterStatus('Issued', this)">Issued (${this.invoices.filter(i=>i.status==='Issued').length})</button></li>
                 <li class="nav-item"><button class="nav-link font-medium" onclick="window.invoiceModule.filterStatus('Partially Paid', this)">Partially Paid (${this.invoices.filter(i=>i.status==='Partially Paid').length})</button></li>
                 <li class="nav-item"><button class="nav-link font-medium" onclick="window.invoiceModule.filterStatus('Fully Paid', this)">Fully Paid (${this.invoices.filter(i=>i.status==='Fully Paid').length})</button></li>
-                <li class="nav-item"><button class="nav-link font-medium" onclick="window.invoiceModule.filterStatus('Overdue', this)">Overdue (${this.invoices.filter(i=>i.status==='Overdue').length})</button></li>
             </ul>
 
             <!-- Filters & Search Card -->
@@ -127,7 +133,7 @@ class InvoiceModule {
                     <div class="col-md-6">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
-                            <input type="text" id="invSearch" class="form-control border-start-0" placeholder="Search INV#, customer, order#, quotation#..." onkeyup="window.invoiceModule.search()">
+                            <input type="text" id="invSearch" class="form-control border-start-0" placeholder="Search INV#, customer, order#, delivery note..." onkeyup="window.invoiceModule.search()">
                         </div>
                     </div>
                     <div class="col-md-6 text-end">
@@ -211,8 +217,9 @@ class InvoiceModule {
                     <td class="text-end">
                         <div class="btn-group btn-group-sm">
                             <button class="btn btn-outline-primary" onclick="window.invoiceModule.renderDetail('${inv.id}')">View</button>
-                            <button class="btn btn-outline-info" onclick="window.invoiceModule.printInvoice('${inv.id}')">Print</button>
+                            <button class="btn btn-outline-info" onclick="window.invoiceModule.printInvoice('${inv.id}')" title="Print Invoice"><i class="fas fa-print"></i></button>
                             ${(inv.balance || 0) > 0 ? `<button class="btn btn-outline-success" onclick="window.invoiceModule.quickPay('${inv.id}')">Pay</button>` : ''}
+                            <button class="btn btn-outline-danger" onclick="window.invoiceModule.deleteInvoice('${inv.id}')" title="Delete"><i class="fas fa-trash-alt"></i></button>
                         </div>
                     </td>
                 </tr>
@@ -234,11 +241,24 @@ class InvoiceModule {
         document.querySelector('#invoicesTable tbody').innerHTML = this.generateTableRows(activeTab, query);
     }
 
-    // 1-CLICK GENERATION FROM DELIVERIES
     showConvertDeliveryModal() {
+        const deliveries = JSON.parse(localStorage.getItem('alugrade_deliveries') || '[]');
+
         const modalId = 'convertDeliveryModal';
         let existingModal = document.getElementById(modalId);
         if (existingModal) existingModal.remove();
+
+        const listItemsHtml = deliveries.length > 0 ? deliveries.map(d => `
+            <div class="list-group-item p-3 d-flex justify-content-between align-items-center mb-2" style="border-radius: 10px; border: 1px solid var(--color-border);">
+                <div>
+                    <h6 class="mb-1 font-bold text-primary">${d.dnNo} - ${d.customerName}</h6>
+                    <p class="text-muted small mb-0">Project: ${d.projectName || 'Site'} &nbsp;|&nbsp; Linked Order: <strong>${d.orderNo}</strong> &nbsp;|&nbsp; Status: <strong>${d.status}</strong></p>
+                </div>
+                <button class="btn btn-success btn-sm font-medium" onclick="window.invoiceModule.createFromDelivery('${d.dnNo}')">
+                    <i class="fas fa-file-invoice me-1"></i> Issue Tax Invoice
+                </button>
+            </div>
+        `).join('') : '<p class="text-muted p-3 text-center">No active delivery notes found.</p>';
 
         const html = `
             <div class="modal fade" id="${modalId}" tabindex="-1" aria-hidden="true">
@@ -246,22 +266,14 @@ class InvoiceModule {
                     <div class="modal-content" style="border-radius: 16px; border: 1px solid var(--color-border);">
                         <div class="modal-header bg-white border-bottom p-4">
                             <h5 class="modal-title font-bold text-main">
-                                <i class="fas fa-file-invoice text-primary me-2"></i> Generate Invoice from Completed Delivery Note
+                                <i class="fas fa-file-invoice text-primary me-2"></i> Issue Commercial Invoice from Delivery Note
                             </h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                         </div>
                         <div class="modal-body p-4">
-                            <p class="text-muted small mb-3">Select a completed delivery note to automatically generate an invoice with auto-imported order items and pricing.</p>
+                            <p class="text-muted small mb-3">Select a completed delivery note to automatically generate a Commercial Tax Invoice with auto-imported customer items, 18% VAT calculation, and advance deposit credit.</p>
                             <div class="list-group">
-                                <div class="list-group-item p-3 d-flex justify-content-between align-items-center" style="border-radius: 10px; border: 1px solid var(--color-border);">
-                                    <div>
-                                        <h6 class="mb-1 font-bold text-primary">DN-2026-0001 - Sunil Shantha Perera</h6>
-                                        <p class="text-muted small mb-0">Project: Kottawa Villa Enclosure &nbsp;|&nbsp; Linked Order: <strong>ORD-2026-0002</strong></p>
-                                    </div>
-                                    <button class="btn btn-success font-medium" onclick="window.invoiceModule.createFromDelivery('DN-2026-0001')">
-                                        <i class="fas fa-bolt me-1"></i> Generate Invoice
-                                    </button>
-                                </div>
+                                ${listItemsHtml}
                             </div>
                         </div>
                     </div>
@@ -281,37 +293,71 @@ class InvoiceModule {
     }
 
     createFromDelivery(dnNo) {
-        const newInvId = 'INV-2026-' + (this.invoices.length + 1).toString().padStart(4, '0');
+        const deliveries = JSON.parse(localStorage.getItem('alugrade_deliveries') || '[]');
+        const del = deliveries.find(d => d.dnNo === dnNo);
+
+        const newInvId = this.generateInvId();
+        const today = new Date().toISOString().split('T')[0];
+        const dueDate = new Date(Date.now() + 14*86400000).toISOString().split('T')[0];
+
+        const items = [];
+        if (del && del.items && del.items.length > 0) {
+            del.items.forEach(i => {
+                const qty = i.qty || 1;
+                const unitPrice = 25000;
+                items.push({
+                    description: i.description,
+                    details: i.specs || 'Fabrication Item',
+                    qty: qty,
+                    price: unitPrice,
+                    amount: qty * unitPrice
+                });
+            });
+        } else {
+            items.push({
+                description: 'Architectural Aluminium & Toughened Glass Package',
+                details: 'Fabrication & Installation as per order specifications',
+                qty: 1,
+                price: 250000,
+                amount: 250000
+            });
+        }
+
+        const subtotal = items.reduce((sum, item) => sum + item.amount, 0);
+        const discount = 10000;
+        const vatPct = 18;
+        const vatAmount = Math.round((subtotal - discount) * (vatPct / 100));
+        const grandTotal = subtotal - discount + vatAmount;
+        const advanceReceived = Math.round(grandTotal * 0.5);
+        const balance = grandTotal - advanceReceived;
+
         const newInv = {
             id: newInvId,
             dnRef: dnNo,
-            orderId: 'ORD-2026-0002',
-            qtId: 'QTN-2026-0004',
-            customerName: 'Sunil Shantha Perera',
-            customerPhone: '0755515862',
-            projectName: 'Kottawa Villa Sliding Glass Enclosure',
-            billingAddress: 'No. 12/B, Temple Road, Kottawa',
-            date: new Date().toISOString().split('T')[0],
-            dueDate: new Date(Date.now() + 14*86400000).toISOString().split('T')[0],
-            subtotal: 294500,
-            discount: 10000,
-            vatPct: 18,
-            vatAmount: 51210,
-            grandTotal: 335710,
-            advanceReceived: 335710,
-            balance: 0,
-            status: 'Fully Paid',
-            notes: 'Generated 1-click from Delivery Note ' + dnNo,
+            orderId: del?.orderNo || 'ORD-2026-0001',
+            qtId: 'QTN-2026-0001',
+            customerName: del?.customerName || 'Direct Client',
+            customerPhone: del?.customerPhone || '0771234567',
+            projectName: del?.projectName || 'Commercial Complex',
+            billingAddress: del?.deliveryAddress || 'Site Location',
+            date: today,
+            dueDate: dueDate,
+            subtotal: subtotal,
+            discount: discount,
+            vatPct: vatPct,
+            vatAmount: vatAmount,
+            grandTotal: grandTotal,
+            advanceReceived: advanceReceived,
+            balance: balance,
+            status: balance <= 0 ? 'Fully Paid' : 'Partially Paid',
+            notes: `Generated 1-click from Delivery Note ${dnNo}.`,
             terms: 'Goods remain property of ALUGRADE LANKA FAB & GLASS until paid in full.',
-            items: [
-                { description: 'Matt Black 3-Track Sliding Glass Door System', details: '3000mm x 2400mm with 8mm Tinted Glass', qty: 1, price: 294500, amount: 294500 }
-            ],
+            items: items,
             payments: [
-                { date: new Date().toISOString().split('T')[0], amount: 335710, method: 'Direct Bank Settlement', reference: '1-Click Delivery Auto-Clear' }
+                { date: today, amount: advanceReceived, method: 'Advance Deposit', reference: 'Order Advance Credit', receiptNo: 'REC-2026-0095' }
             ],
             timeline: [
-                { title: `Generated 1-Click from Delivery Note ${dnNo}`, date: new Date().toLocaleString(), user: 'Billing Dept' },
-                { title: 'Invoice Marked Fully Paid', date: new Date().toLocaleString(), user: 'System Auto' }
+                { title: `Generated Commercial Tax Invoice from Delivery Note ${dnNo}`, date: new Date().toLocaleString(), user: 'Accounts Dept' }
             ]
         };
 
@@ -328,21 +374,21 @@ class InvoiceModule {
             }
         }
 
-        alert(`Invoice ${newInvId} generated successfully from ${dnNo}!`);
-        this.render();
+        alert(`Invoice ${newInvId} generated successfully from Delivery Note ${dnNo}!`);
+        this.renderDetail(newInvId);
     }
 
     renderNewForm() {
         const container = document.getElementById(this.containerId) || document.getElementById('pageContent') || document.body;
 
-        const newId = 'INV-2026-' + (this.invoices.length + 1).toString().padStart(4, '0');
+        const newId = this.generateInvId();
         const today = new Date().toISOString().split('T')[0];
         const dueDateStr = new Date(Date.now() + 14*86400000).toISOString().split('T')[0];
 
         let html = `
             <div class="page-header d-flex justify-content-between align-items-center mb-4">
-                <h2 class="font-bold mb-0">Create Commercial Invoice</h2>
-                <button class="btn btn-outline-secondary" onclick="window.invoiceModule.render()">Back to Invoices</button>
+                <h2 class="font-bold mb-0">Create Commercial Tax Invoice</h2>
+                <button class="btn btn-outline-secondary" onclick="window.invoiceModule.render()"><i class="fas fa-arrow-left me-1"></i> Back to Invoices</button>
             </div>
             <form id="invoiceForm" onsubmit="event.preventDefault(); window.invoiceModule.save();">
                 <div class="card p-4 mb-4" style="background: #ffffff; border: 1px solid var(--color-border); border-radius: 14px;">
@@ -459,7 +505,7 @@ class InvoiceModule {
         `;
 
         container.innerHTML = html;
-        this.addItemRow({ description: '100mm Heavy Duty Aluminium Partition Framing', details: '2400mm x 2100mm with 6mm Tempered Glass', qty: 4, price: 119339, amount: 477356 });
+        this.addItemRow({ description: '100mm Heavy Duty Aluminium Partition Framing', details: '2400mm x 2100mm with 6mm Tempered Glass (Alumex)', qty: 4, price: 119339, amount: 477356 });
     }
 
     addItemRow(item = {}) {
@@ -511,9 +557,13 @@ class InvoiceModule {
         if (inv_subtotal) inv_subtotal.value = subtotal.toFixed(2);
 
         const discount = parseFloat(document.getElementById('inv_discount')?.value) || 0;
-        const tax = parseFloat(document.getElementById('inv_tax')?.value) || 0;
+        const vatPct = 18;
+        const vatAmount = Math.round((subtotal - discount) * (vatPct / 100));
 
-        const grandTotal = Math.max(0, subtotal - discount + tax);
+        const inv_tax = document.getElementById('inv_tax');
+        if (inv_tax) inv_tax.value = vatAmount.toFixed(2);
+
+        const grandTotal = Math.max(0, subtotal - discount + vatAmount);
         const inv_grandTotal = document.getElementById('inv_grandTotal');
         if (inv_grandTotal) inv_grandTotal.value = grandTotal.toFixed(2);
 
@@ -557,6 +607,7 @@ class InvoiceModule {
             terms: document.getElementById('inv_terms').value,
             subtotal: parseFloat(document.getElementById('inv_subtotal').value),
             discount: parseFloat(document.getElementById('inv_discount').value),
+            vatPct: 18,
             vatAmount: parseFloat(document.getElementById('inv_tax').value),
             grandTotal: grandTotal,
             advanceReceived: advanceReceived,
@@ -564,13 +615,26 @@ class InvoiceModule {
             items: items,
             status: status,
             payments: advanceReceived > 0 ? [{ date: new Date().toISOString().split('T')[0], amount: advanceReceived, method: 'Advance Payment', reference: 'Initial Deposit' }] : [],
-            timeline: [{ title: 'Invoice Issued', date: new Date().toLocaleString(), user: 'Accounts Dept' }]
+            timeline: [{ title: 'Commercial Tax Invoice Issued', date: new Date().toLocaleString(), user: 'Accounts Dept' }]
         };
 
-        this.invoices.unshift(invData);
+        const existingIndex = this.invoices.findIndex(x => x.id === id);
+        if (existingIndex >= 0) {
+            this.invoices[existingIndex] = invData;
+        } else {
+            this.invoices.unshift(invData);
+        }
+
         this.saveInvoices();
         alert(`Invoice ${id} saved successfully!`);
         this.renderDetail(id);
+    }
+
+    deleteInvoice(id) {
+        if (!confirm(`Are you sure you want to delete Invoice ${id}?`)) return;
+        this.invoices = this.invoices.filter(i => i.id !== id);
+        this.saveInvoices();
+        this.render();
     }
 
     renderDetail(id) {
@@ -586,9 +650,9 @@ class InvoiceModule {
                     <h2 class="mb-0 font-bold" style="color: var(--color-brand-charcoal);">Invoice Detail: ${inv.id}</h2>
                     <p class="text-muted small mb-0">Customer: <strong>${inv.customerName}</strong> &nbsp;|&nbsp; Due Date: <strong>${inv.dueDate}</strong></p>
                 </div>
-                <div>
-                    <button class="btn btn-outline-secondary me-2" onclick="window.invoiceModule.render()"><i class="fas fa-arrow-left me-1"></i> Back to Invoices</button>
-                    ${!isPaid ? `<button class="btn btn-success me-2" onclick="window.invoiceModule.quickPay('${inv.id}')"><i class="fas fa-money-bill-wave me-1"></i> Record Payment</button>` : ''}
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary" onclick="window.invoiceModule.render()"><i class="fas fa-arrow-left me-1"></i> Back</button>
+                    ${!isPaid ? `<button class="btn btn-success" onclick="window.invoiceModule.quickPay('${inv.id}')"><i class="fas fa-money-bill-wave me-1"></i> Record Payment</button>` : ''}
                     <button class="btn btn-primary" onclick="window.invoiceModule.printInvoice('${inv.id}')"><i class="fas fa-print me-1"></i> Print Invoice</button>
                 </div>
             </div>
@@ -608,7 +672,7 @@ class InvoiceModule {
                         </div>
                     </div>
                     <div class="text-end">
-                        <h3 class="font-bold text-primary mb-1">TAX INVOICE</h3>
+                        <h3 class="font-bold text-primary mb-1">COMMERCIAL TAX INVOICE</h3>
                         <div class="fs-5 font-bold text-main">${inv.id}</div>
                         <span class="badge ${isPaid?'bg-success':'bg-warning text-dark'} font-bold mt-1">${inv.status}</span>
                     </div>
@@ -732,41 +796,234 @@ class InvoiceModule {
     }
 
     quickPay(id) {
-        const inv = this.invoices.find(x => x.id === id);
-        if (!inv) return;
+        if (window.paymentModule && window.paymentModule.renderNewForm) {
+            const inv = this.invoices.find(x => x.id === id);
+            window.paymentModule.renderNewForm(inv?.orderId || 'ORD-2026-0001', id);
+        } else {
+            const inv = this.invoices.find(x => x.id === id);
+            if (!inv) return;
 
-        const amountStr = prompt(`Record payment for Invoice ${inv.id}.\nBalance Due: LKR ${inv.balance.toLocaleString('en-US', {minimumFractionDigits:2})}`, inv.balance);
-        if (amountStr !== null) {
-            const amount = parseFloat(amountStr);
-            if (!isNaN(amount) && amount > 0) {
-                inv.advanceReceived += amount;
-                inv.balance = Math.max(0, inv.grandTotal - inv.advanceReceived);
-                
-                if (inv.balance <= 0) inv.status = 'Fully Paid';
-                else inv.status = 'Partially Paid';
+            const amountStr = prompt(`Record payment for Invoice ${inv.id}.\nBalance Due: LKR ${inv.balance.toLocaleString('en-US', {minimumFractionDigits:2})}`, inv.balance);
+            if (amountStr !== null) {
+                const amount = parseFloat(amountStr);
+                if (!isNaN(amount) && amount > 0) {
+                    inv.advanceReceived += amount;
+                    inv.balance = Math.max(0, inv.grandTotal - inv.advanceReceived);
+                    
+                    if (inv.balance <= 0) inv.status = 'Fully Paid';
+                    else inv.status = 'Partially Paid';
 
-                inv.payments.push({
-                    date: new Date().toISOString().split('T')[0],
-                    amount: amount,
-                    method: 'Bank Transfer / Cheque',
-                    reference: 'Customer Payment Entry'
-                });
+                    inv.payments.push({
+                        date: new Date().toISOString().split('T')[0],
+                        amount: amount,
+                        method: 'Bank Transfer / Cheque',
+                        reference: 'Customer Payment Entry'
+                    });
 
-                inv.timeline.push({
-                    title: `Payment Received: LKR ${amount.toLocaleString('en-US', {minimumFractionDigits:2})}`,
-                    date: new Date().toLocaleString(),
-                    user: 'Accounts Dept'
-                });
+                    inv.timeline.push({
+                        title: `Payment Received: LKR ${amount.toLocaleString('en-US', {minimumFractionDigits:2})}`,
+                        date: new Date().toLocaleString(),
+                        user: 'Accounts Dept'
+                    });
 
-                this.saveInvoices();
-                alert(`Payment of LKR ${amount.toLocaleString('en-US', {minimumFractionDigits:2})} recorded successfully!`);
-                this.render();
+                    this.saveInvoices();
+                    alert(`Payment of LKR ${amount.toLocaleString('en-US', {minimumFractionDigits:2})} recorded successfully!`);
+                    this.render();
+                }
             }
         }
     }
 
+    renderPrintView(id) {
+        const inv = this.invoices.find(x => x.id === id);
+        if (!inv) return '';
+
+        const itemsHtml = (inv.items || []).map((item, idx) => `
+            <tr>
+                <td class="text-center" style="font-weight: 700;">${idx + 1}</td>
+                <td><strong>${item.description}</strong><br><span style="font-size: 8.5px; color: #64748B;">${item.details || ''}</span></td>
+                <td class="text-center" style="font-weight: 700;">${item.qty}</td>
+                <td class="text-end">LKR ${(item.price || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</td>
+                <td class="text-end" style="font-weight: 700;">LKR ${(item.amount || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</td>
+            </tr>
+        `).join('');
+
+        return `
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <title>Commercial Tax Invoice ${inv.id} - ALUGRADE LANKA</title>
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+                <style>
+                    @page {
+                        size: A4 portrait;
+                        margin: 10mm 12mm 10mm 12mm;
+                    }
+                    * { box-sizing: border-box; }
+                    body {
+                        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+                        margin: 0;
+                        padding: 20px;
+                        color: #0F172A;
+                        background: #ffffff;
+                        font-size: 11px;
+                        line-height: 1.4;
+                        position: relative;
+                        -webkit-print-color-adjust: exact;
+                        print-color-adjust: exact;
+                    }
+
+                    .watermark {
+                        position: fixed;
+                        top: 45%;
+                        left: 50%;
+                        transform: translate(-50%, -50%) rotate(-20deg);
+                        width: 360px;
+                        opacity: 0.07;
+                        pointer-events: none;
+                        z-index: 0;
+                    }
+
+                    .content-wrapper { position: relative; z-index: 1; }
+
+                    .header-container {
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        border-bottom: 2.5px solid #2563EB;
+                        padding-bottom: 14px;
+                        margin-bottom: 16px;
+                    }
+                    .logo-brand-wrap { display: flex; align-items: center; gap: 14px; }
+                    .logo-box img { height: 68px; width: auto; object-fit: contain; }
+                    .company-title { font-family: 'Montserrat', sans-serif; font-size: 17px; font-weight: 800; color: #0F172A; margin: 0; }
+                    .company-subtitle { color: #2563EB; font-size: 10px; font-weight: 700; margin: 2px 0 3px 0; text-transform: uppercase; }
+
+                    .header-info-box { text-align: right; }
+                    .doc-badge { background: #2563EB; color: #ffffff; font-family: 'Montserrat', sans-serif; font-size: 15px; font-weight: 800; padding: 4px 14px; border-radius: 6px; display: inline-block; margin-bottom: 6px; }
+
+                    .info-grid { display: flex; gap: 14px; margin-bottom: 16px; }
+                    .info-card { flex: 1; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px 14px; background: #F8FAFC; }
+                    .info-card h4 { margin: 0 0 6px 0; color: #2563EB; font-size: 11px; font-weight: 700; text-transform: uppercase; border-bottom: 1px solid #E2E8F0; padding-bottom: 4px; }
+
+                    table.spec-table { width: 100%; border-collapse: collapse; margin-bottom: 16px; }
+                    table.spec-table th { background: #0F172A; color: #ffffff; font-size: 9.5px; font-weight: 700; text-transform: uppercase; padding: 7px 8px; border: 1px solid #0F172A; text-align: left; }
+                    table.spec-table td { border: 1px solid #CBD5E1; padding: 7px 8px; font-size: 10px; color: #1E293B; }
+                    .text-center { text-align: center; }
+                    .text-end { text-align: right; }
+
+                    .totals-container { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+                    .terms-box { flex: 1; border: 1px solid #E2E8F0; border-radius: 8px; padding: 10px; background: #F8FAFC; font-size: 9.5px; }
+                    .summary-box { width: 260px; text-align: right; font-size: 10.5px; }
+                    .summary-row { display: flex; justify-content: space-between; padding: 3px 0; }
+                    .grand-row { border-top: 1.5px solid #0F172A; border-bottom: 1.5px solid #0F172A; font-weight: 800; font-size: 13px; color: #2563EB; margin: 4px 0; padding: 4px 0; }
+
+                    .signature-area { display: flex; justify-content: space-between; align-items: flex-end; margin-top: 24px; padding-top: 10px; page-break-inside: avoid; }
+                    .sig-block { text-align: center; width: 210px; }
+                    .sig-image-container img { max-height: 52px; width: auto; }
+                    .sig-line-bar { border-top: 1.5px solid #0F172A; width: 100%; margin: 4px 0 4px 0; }
+                </style>
+            </head>
+            <body>
+                <img src="assets/logo/logo.png" class="watermark" alt="Watermark" />
+                <div class="content-wrapper">
+                    <div class="header-container">
+                        <div class="logo-brand-wrap">
+                            <div class="logo-box">
+                                <img src="assets/logo/logo.png" alt="ALUGRADE LANKA" />
+                            </div>
+                            <div>
+                                <h1 class="company-title">ALUGRADE LANKA FAB & GLASS</h1>
+                                <div class="company-subtitle">Commercial Tax Invoice</div>
+                            </div>
+                        </div>
+                        <div class="header-info-box">
+                            <div class="doc-badge">COMMERCIAL TAX INVOICE</div>
+                            <div><strong>Invoice No:</strong> ${inv.id}</div>
+                            <div><strong>Order Ref:</strong> ${inv.orderId || '-'}</div>
+                            <div><strong>Delivery Ref:</strong> ${inv.dnRef || '-'}</div>
+                            <div><strong>Invoice Date:</strong> ${inv.date}</div>
+                            <div><strong>Due Date:</strong> ${inv.dueDate}</div>
+                        </div>
+                    </div>
+
+                    <div class="info-grid">
+                        <div class="info-card">
+                            <h4>Billed To Customer</h4>
+                            <strong>${inv.customerName}</strong><br>
+                            Phone: ${inv.customerPhone || 'N/A'}<br>
+                            Billing Address: ${inv.billingAddress || 'N/A'}
+                        </div>
+                        <div class="info-card">
+                            <h4>Payment & Account Metadata</h4>
+                            Status: <strong>${inv.status}</strong><br>
+                            Bank: Commercial Bank Homagama<br>
+                            Account Name: ALUGRADE LANKA FAB & GLASS
+                        </div>
+                    </div>
+
+                    <h4 style="margin: 10px 0 6px 0; color: #0F172A; font-size: 11px; font-weight: 700;">FABRICATION & GLASS SERVICES</h4>
+                    <table class="spec-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 25px;" class="text-center">#</th>
+                                <th>Item & Description</th>
+                                <th style="width: 40px;" class="text-center">Qty</th>
+                                <th style="width: 100px;" class="text-end">Unit Price</th>
+                                <th style="width: 110px;" class="text-end">Amount (LKR)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsHtml}
+                        </tbody>
+                    </table>
+
+                    <div class="totals-container">
+                        <div class="terms-box">
+                            <strong>Notes & Terms:</strong><br>
+                            ${inv.notes || 'Thank you for your business.'}<br><br>
+                            ${inv.terms || 'Goods remain property of ALUGRADE until paid in full.'}
+                        </div>
+                        <div class="summary-box">
+                            <div class="summary-row"><span>Subtotal:</span><span>LKR ${(inv.subtotal || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
+                            <div class="summary-row" style="color: #64748B;"><span>Discount:</span><span>- LKR ${(inv.discount || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
+                            <div class="summary-row"><span>VAT (18%):</span><span>LKR ${(inv.vatAmount || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
+                            <div class="grand-row"><div class="summary-row"><span>Grand Total:</span><span>LKR ${(inv.grandTotal || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div></div>
+                            <div class="summary-row" style="color: #16A34A; font-weight: 700;"><span>Paid / Advance:</span><span>LKR ${(inv.advanceReceived || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
+                            <div class="summary-row" style="color: #DC2626; font-weight: 800; font-size: 12px;"><span>Balance Due:</span><span>LKR ${(inv.balance || 0).toLocaleString('en-US', {minimumFractionDigits:2})}</span></div>
+                        </div>
+                    </div>
+
+                    <div class="signature-area">
+                        <div class="sig-block">
+                            <div class="sig-image-container">
+                                <img src="assets/signature/signature.png" alt="Authorized Signature" />
+                            </div>
+                            <div class="sig-line-bar"></div>
+                            <div>MR. M. U. RAJAPAKSHA</div>
+                            <div style="font-size: 9px; color: #475569;">Managing Director</div>
+                        </div>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `;
+    }
+
     printInvoice(id) {
-        window.print();
+        const html = this.renderPrintView(id);
+        if (!html) return;
+        const printWindow = window.open('', '_blank', 'width=900,height=950');
+        printWindow.document.write(html);
+        printWindow.document.close();
+        printWindow.focus();
+        setTimeout(() => {
+            printWindow.print();
+            printWindow.close();
+        }, 500);
     }
 
     exportListExcel() {

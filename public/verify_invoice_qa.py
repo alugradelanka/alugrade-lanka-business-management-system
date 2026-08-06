@@ -1,0 +1,118 @@
+import os
+import subprocess
+
+html_content = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Invoice & Finance Module QA Verification</title>
+    <style>
+        body { padding: 20px; font-family: sans-serif; background: #f8fafc; }
+    </style>
+</head>
+<body>
+    <div id="pageContent" style="width: 1200px; margin: 0 auto;"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/modules/invoices.js"></script>
+    <script src="js/modules/payments.js"></script>
+    <script>
+        window.errorsFound = [];
+        window.onerror = function(msg, url, line) {
+            window.errorsFound.push({ msg, url, line });
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                window.invoiceModule = new InvoiceModule();
+                window.paymentModule = new PaymentModule();
+
+                window.invoiceModule.render();
+
+                console.log('InvoiceModule loaded successfully!');
+                console.log('Total Invoices loaded:', window.invoiceModule.invoices.length);
+
+                // Test 1-click Invoice creation from dummy Delivery Note
+                const testDnNo = 'DN-2026-9999';
+                window.invoiceModule.createFromDelivery(testDnNo);
+
+                const newInv = window.invoiceModule.invoices[0];
+                console.log('Generated Tax Invoice:', newInv.id);
+
+                // Verify VAT 18% and financial totals
+                const expectedVat = Math.round((newInv.subtotal - newInv.discount) * 0.18);
+                if (newInv.vatAmount !== expectedVat) {
+                    window.errorsFound.push(`VAT calculation mismatch: expected ${expectedVat}, got ${newInv.vatAmount}`);
+                } else {
+                    console.log('VAT 18% verified:', newInv.vatAmount);
+                }
+
+                // Test Print Views
+                const invPrintHtml = window.invoiceModule.renderPrintView(newInv.id);
+                if (!invPrintHtml || invPrintHtml.length < 500) {
+                    window.errorsFound.push('Invoice renderPrintView returned invalid HTML');
+                } else {
+                    console.log('Invoice Print View generated, HTML length:', invPrintHtml.length);
+                }
+
+                // Test Payment Recording
+                window.paymentModule.render();
+                const initialPayCount = window.paymentModule.payments.length;
+
+                window.paymentModule.renderNewForm('ORD-2026-0001', newInv.id);
+
+                // Simulate saving payment
+                const testPayData = {
+                    payNo: window.paymentModule.generatePayNo(),
+                    receiptNo: window.paymentModule.generateReceiptNo(),
+                    paymentDate: new Date().toISOString().split('T')[0],
+                    invoiceId: newInv.id,
+                    orderId: newInv.orderId,
+                    customerName: newInv.customerName,
+                    method: 'Bank Transfer',
+                    amount: newInv.balance,
+                    reference: 'TRF-TEST-889',
+                    notes: 'Final settlement'
+                };
+
+                testPayData.invoiceTotal = newInv.grandTotal;
+                testPayData.previousPayments = newInv.advanceReceived;
+                testPayData.remainingBalance = 0;
+                testPayData.status = 'Paid';
+
+                window.paymentModule.payments.unshift(testPayData);
+                window.paymentModule.savePayments();
+
+                // Update invoice balance directly
+                newInv.advanceReceived += testPayData.amount;
+                newInv.balance = 0;
+                newInv.status = 'Fully Paid';
+                window.invoiceModule.saveInvoices();
+
+                console.log('Payment recorded successfully, updated invoice balance:', newInv.balance);
+
+                const receiptPrintHtml = window.paymentModule.renderPrintView(testPayData.payNo);
+                if (!receiptPrintHtml || receiptPrintHtml.length < 500) {
+                    window.errorsFound.push('Receipt renderPrintView returned invalid HTML');
+                } else {
+                    console.log('Receipt Print View generated, HTML length:', receiptPrintHtml.length);
+                }
+
+                window.invoiceModule.render();
+                document.body.setAttribute('data-qa-complete', 'true');
+            } catch (err) {
+                console.error('QA Exception:', err);
+                window.errorsFound.push(err.message || String(err));
+            }
+        });
+    </script>
+</body>
+</html>'''
+
+with open('test_invoice_qa.html', 'w', encoding='utf-8') as f:
+    f.write(html_content)
+
+print('Created test_invoice_qa.html successfully!')
