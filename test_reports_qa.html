@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Reports Module QA Verification</title>
+    <style>
+        body { padding: 20px; font-family: sans-serif; background: #f8fafc; }
+    </style>
+</head>
+<body>
+    <div id="pageContent" style="width: 1200px; margin: 0 auto;"></div>
+
+    <script src="js/config.js"></script>
+    <script src="js/events.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/modules/reports.js"></script>
+    <script>
+        window.errorsFound = [];
+        window.onerror = function(msg, url, line) {
+            window.errorsFound.push({ msg, url, line });
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            try {
+                window.reportModule = new ReportModule();
+                window.reportModule.render();
+
+                console.log('ReportModule loaded successfully!');
+
+                const categories = ['sales', 'financial', 'operations', 'logistics', 'inventory', 'customer'];
+                categories.forEach(cat => {
+                    window.reportModule.switchCategory(cat);
+                    console.log(`Switched to category: ${cat}`);
+                });
+
+                // Test specific report renderings
+                const reportTypes = [
+                    'sales_summary', 'monthly_revenue', 'sales_agent', 'quotation_report',
+                    'invoice_report', 'payment_report', 'expenses_report', 'monthly_profit',
+                    'outstanding_payments', 'orders_report', 'production_report', 'delivery_report',
+                    'inventory_report', 'customer_report'
+                ];
+
+                reportTypes.forEach(rt => {
+                    window.reportModule.handleReportChange(rt);
+                    console.log(`Generated report type: ${rt}`);
+                });
+
+                // Test Print View HTML generation
+                const printHtml = window.reportModule.renderPrintView();
+                if (!printHtml || printHtml.length < 300) {
+                    window.errorsFound.push('Report renderPrintView returned invalid HTML');
+                } else {
+                    console.log('Report Print View generated, HTML length:', printHtml.length);
+                }
+
+                // Render back to sales summary
+                window.reportModule.switchCategory('sales');
+                document.body.setAttribute('data-qa-complete', 'true');
+            } catch (err) {
+                console.error('QA Exception:', err);
+                window.errorsFound.push(err.message || String(err));
+            }
+        });
+    </script>
+</body>
+</html>
